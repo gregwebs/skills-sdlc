@@ -37,6 +37,18 @@ Create it as a [Stacked PR](https://github.github.com/gh-stack/introduction/over
 For the PR description, use the `/document-changes` skill.
 If the PR resolves an issue, ensure it is auto-closed by using the "Resolves" keyword: "Resolves #10".
 
+When you write a commit message, follow these 7 rules:
+Rule 1: Separate the subject line from the body with a single blank line.
+Rule 2: Limit the subject line to 50 characters (72 is the absolute hard limit).
+Rule 3: Capitalize the first letter of the subject line.
+Rule 4: Do not end the subject line with a period.
+Rule 5: Use the imperative mood in the subject line (e.g., "Fix bug," "Add feature,"
+        not "Fixed" or "Adds"). Test formula: It must complete the sentence: "If applied,
+        this commit will [your subject line here]".
+Rule 6: Wrap the body text manually at 72 characters to prevent Git formatting issues.
+Rule 7: Use the body to explain what and why vs. how. Assume the code explains the how;
+        the message must explain the context and reasoning.
+
 ## Check on CI
 
 When CI access is available and the user requested PR follow-up, check the CI run for the PR.
