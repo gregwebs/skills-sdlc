@@ -1,6 +1,6 @@
 ---
 name: github-app
-description: Read and update GitHub issues, push branches, and create or update pull requests, issues, and comments through the App-authenticated ./scripts/gh-app.sh dispatcher. Use for GitHub reads or writes, including "open a PR", "send a pull request", "file/read/update an issue", "comment on the PR/issue", "mark an issue as blocked by / blocking another", or an App-authenticated push.
+description: Read and update GitHub issues, push branches, and create or update pull requests, issues, and comments through App-authenticated scripts. Use for GitHub reads or writes, including "open a PR", "send a pull request", "file/read/update an issue", "comment on the PR/issue", "mark an issue as blocked by / blocking another", or an App-authenticated push.
 user-invocable: true
 allowed-tools:
   - Read
@@ -23,7 +23,7 @@ call — nothing to log into. Each script prints
 the resulting `html_url` on success; **always relay that URL back to the user.**
 
 These are **outward-facing actions** (they publish to GitHub and notify people).
-This skill only runs in response to a request the user typed in their terminal.
+This skill only runs when explicitly requested by the user- this includes explicitly invoking another skill that explicitly invokes this skill.
 Confirm the target (repo, branch, title) before running if there's any ambiguity.
 
 ## Setup reference
@@ -41,6 +41,9 @@ If these files are missing, the skill is not configured.
 If the skill needs to be used, prompt the user to add these files.
 
 ## The scripts
+
+These scripts are located relative to this SKILL.md file, which is probably
+$HOME/.agents/skills/github-app/scripts/*.sh
 
 | Action | Dispatcher command | Required args |
 |---|---|---|
