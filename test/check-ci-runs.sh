@@ -60,6 +60,26 @@ write_fixture check_runs_other_apps.json \
   '{"check_runs":[
      {"name":"ci/circleci","app":{"slug":"circleci"},"status":"completed","conclusion":"success","html_url":"https://x/1","started_at":"2024-01-01T00:00:00Z"}
    ]}'
+write_fixture check_runs_success_with_skip.json \
+  '{"check_runs":[
+     {"name":"build","app":{"slug":"github-actions"},"status":"completed","conclusion":"success","html_url":"https://x/1","started_at":"2024-01-01T00:00:00Z"},
+     {"name":"gem","app":{"slug":"github-actions"},"status":"completed","conclusion":"skipped","html_url":"https://x/2","started_at":"2024-01-01T00:00:00Z"}
+   ]}'
+write_fixture check_runs_skip_pending.json \
+  '{"check_runs":[
+     {"name":"gem","app":{"slug":"github-actions"},"status":"completed","conclusion":"skipped","html_url":"https://x/1","started_at":"2024-01-01T00:00:00Z"},
+     {"name":"test","app":{"slug":"github-actions"},"status":"in_progress","conclusion":null,"html_url":"https://x/2","started_at":"2024-01-01T00:00:00Z"}
+   ]}'
+write_fixture check_runs_fail_with_skip.json \
+  '{"check_runs":[
+     {"name":"gem","app":{"slug":"github-actions"},"status":"completed","conclusion":"skipped","html_url":"https://x/1","started_at":"2024-01-01T00:00:00Z"},
+     {"name":"test","app":{"slug":"github-actions"},"status":"completed","conclusion":"failure","html_url":"https://x/2","started_at":"2024-01-01T00:00:00Z"}
+   ]}'
+write_fixture check_runs_success_with_neutral.json \
+  '{"check_runs":[
+     {"name":"build","app":{"slug":"github-actions"},"status":"completed","conclusion":"success","html_url":"https://x/1","started_at":"2024-01-01T00:00:00Z"},
+     {"name":"lint","app":{"slug":"github-actions"},"status":"completed","conclusion":"neutral","html_url":"https://x/2","started_at":"2024-01-01T00:00:00Z"}
+   ]}'
 write_fixture actions_runs_zero.json '{"total_count":0}'
 write_fixture actions_runs_nonzero.json '{"total_count":1}'
 write_fixture workflows_zero_active.json '{"workflows":[]}'
@@ -139,6 +159,30 @@ assert_status 1
 # A check is still running (one-shot mode).
 run_case check_runs_pending.json '' '' 120 --
 assert_status 2
+
+# (a) A run that succeeds with a legitimately skipped job resolves to success:
+# "skipped" must not be treated as failure. Also guards the coupled success
+# predicate (all-jobs-success would otherwise reject the skipped job).
+run_case check_runs_success_with_skip.json '' '' 120 --
+assert_status 0
+assert_stdout_contains 'build: completed (success)'
+assert_stdout_contains 'gem: completed (skipped)'
+
+# (b) A skipped job while another job is still pending must NOT trigger a
+# premature failure: one-shot mode stays "pending" (exit 2). This is the
+# reported bug (formerly exited 1 immediately).
+run_case check_runs_skip_pending.json '' '' 120 --
+assert_status 2
+
+# (c) A genuine failure alongside a skipped job still fails (failure wins).
+run_case check_runs_fail_with_skip.json '' '' 120 --
+assert_status 1
+
+# (d) "neutral" is a non-failing terminal conclusion too, same as "skipped".
+run_case check_runs_success_with_neutral.json '' '' 120 --
+assert_status 0
+assert_stdout_contains 'build: completed (success)'
+assert_stdout_contains 'lint: completed (neutral)'
 
 # --job names a job that hasn't reported, but other GitHub Actions checks
 # exist for this commit, so CI does apply here: stays "pending", not "absent".

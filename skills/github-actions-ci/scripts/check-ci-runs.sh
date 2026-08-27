@@ -213,12 +213,12 @@ while true; do
 
   jq -r '.[] | "\(.name): \(.status) (\(.conclusion // "pending"))\n\(.html_url)"' <<<"$selected"
 
-  if jq -e 'all(.[]; .status == "completed" and .conclusion == "success")' \
+  if jq -e 'all(.[]; .status == "completed" and (.conclusion | IN("success","skipped","neutral")))' \
     >/dev/null <<<"$selected"; then
     exit
   fi
 
-  if jq -e 'any(.[]; .status == "completed" and .conclusion != "success")' \
+  if jq -e 'any(.[]; .status == "completed" and (.conclusion | IN("success","skipped","neutral") | not))' \
     >/dev/null <<<"$selected"; then
     exit 1
   fi
