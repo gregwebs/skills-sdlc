@@ -22,6 +22,7 @@ HOME="$HOME" "$INSTALLER" --local-skills-dir "$LOCAL" --upstream-skills-dir "$UP
 
 [ "$INSTALL/custom" -ef "$LOCAL/custom" ]
 [ "$INSTALL/tdd" -ef "$UPSTREAM/tdd" ]
+[ ! -e "$INSTALL/skills" ] && [ ! -L "$INSTALL/skills" ]
 [ "$HOME/.claude/skills" -ef "$LOCAL" ]
 [ "$HOME/.claude/skills/tdd" -ef "$UPSTREAM/tdd" ]
 

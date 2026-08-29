@@ -104,10 +104,12 @@ is_mattpocock_skill() {
   return 1
 }
 
-mapfile -t local_skills < <(
-  find "$LOCAL_SKILLS_DIR" -mindepth 2 -maxdepth 2 -type f -name SKILL.md \
-    -exec dirname {} \; | xargs -0 -n1 basename | sort -u | grep -v experimental
-)
+local_skills=()
+shopt -s nullglob
+for skill_file in "$LOCAL_SKILLS_DIR"/*/SKILL.md; do
+  local_skills+=("$(basename "${skill_file%/SKILL.md}")")
+done
+shopt -u nullglob
 [ "${#local_skills[@]}" -gt 0 ] || die "no SKILL.md files found in: $LOCAL_SKILLS_DIR"
 
 is_local_skill() {
@@ -180,6 +182,10 @@ link_all_skills() {
   run mkdir -p "$destination"
   for name in "${local_skills[@]}"; do
     source="$(absolute_dir "$LOCAL_SKILLS_DIR/$name")"
+    link_skill "$destination" "$source"
+  done
+  for name in "${dependencies[@]}"; do
+    source="$(absolute_dir "$UPSTREAM_SKILLS_DIR/$name")"
     link_skill "$destination" "$source"
   done
 }
