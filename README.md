@@ -75,29 +75,31 @@ Generate a project's `CODING_STANDARDS.md` from this repository's
 
 Positional arguments name which `standards/*.md` documents to add to the standard and in which order.
 
+
 ## Workflow
+
+The Overall flow:
+
+Find work -> Spec with a grilling session -> create Tickets -> Implement a ticket
 
 Workflows are started by you, normally with a frontier model using these skills:
 
-* /grill-with-docs (new feature)
-* /diagnosing-bugs (fix a bug)
-* /improve-codebase-architecture (cleanup your slop)
-* /wayfinder (large amount of work)
-* a conversation without explicit skill invocation
+* /grill-with-docs (new feature or enhancement)
+  * /improve-codebase-architecture (cleanup your slop, goes into a grilling session)
+* /diagnosing-bugs
 
-Work discussed is then converted to a spec by you or the agent
+Next work can then be broken down into slices and published with:
 
-* /to-spec
-
-After a spec is generated, it can be broken down into slices and published with
-
-* /to-tickets
+* /tickets (/github-tickets for Github users)
 
 Then implemented with
 
 * /implement
 
 This orcestrates planning, implementing, and reviewing. If you install the agents in this repo, it will use them to switch between opus for planning and review and Sonnet for implementation.
+
+You may not always go through the full flow. Sometimes the bug seems very simple and you can just ask the agent to fix it and then send a /pull-request. Or you think a grilling session is unnecessary for a simple change and you go from a conversation to /tickets. The workflow has lots of pieces that you can use however you see fit.
+
 
 ### Differences
 

@@ -8,20 +8,22 @@ metadata:
 
 # /github-tickets
 
-This project builds on top of  the `to-tickets` skill so multi-ticket breakdowns
-are published with a parent tracking issue and native GitHub sub-issue links.
+This project builds on top of  the `tickets`/`to-tickets` skill so multi-ticket breakdowns
+are published with a parent tracking issue (epic) and native GitHub sub-issue links.
+
+It also asks for more detail in the ticket.
 
 ## Delegate first
 
-Read the `/to-tickets` skill and follow its full process: gather context, draft vertical slices, quiz the
-user, iterate until approved, and publish.
+Read the `/tickets` and `/to-tickets` skill and follow its full process. This skill just modifies the publishing portion.
+If the `/tickets` skill is unavailable, just use `/to-tickets`.
 
-If that skill does not exist on this machine, stop and tell the user the
+If `/to-tickets` skill does not exist on this machine, stop and tell the user the
 `to-tickets` skill is missing.
 
 ## Publishing override for this repo
 
-This section replaces the base skill's publish step.
+This section provides specific details for how to publish to "A real issue tracker"
 
 Create all issues with `./scripts/gh-app.sh issue-create`. Write issue
 bodies to temp files and pass them with `--body-file`; never pass Markdown with
@@ -37,7 +39,7 @@ one `ready-for-agent` issue and do not create a parent issue.
 
 If the approved breakdown has two or more tickets:
 
-1. Create a parent tracking issue first.
+1. Create a parent epic tracking issue first.
    - Title: the short name of the work.
    - Body: the source spec verbatim, or a synthesized spec if working only from
      conversation, prefixed with one line saying this is a tracking issue whose
