@@ -1,25 +1,51 @@
-## Goal
+## Overview
 
-* Increase Agent code quality (fewer defects, stronger code base)
-* Decrease user overview to planning and reviewing
+These skills increase project and Agent code quality producing much fewer defects and a much stronger code base.
 
-These are achieved by:
+This changes how you spend time developing software. Effectively you are acting as a technical lead.
+Rather than coding your time is focused on:
+
+* Understanding the project needs
+* Developing specs
+* Ensuring a rigorous engineering process
+* Code review (but much less time then you would normally spend reviewing AI code)
+
+This is achieved by:
 * outlining a workflow that emphasizes specing, planning, testing, verification, and architecture/design
-* having a separate agent review at every stage
+* agent reviews at every stage
 
-Requirements from you
-* Deeply involved with the speccing/planning stage
-* Spend effort on engineering discipline
+Downsides:
+* Increased time for AI to implement a change
+* Similarly, a higher cost
 
-Downsides
-* It takes AI more time to complete its task
-* Higher cost to initially complete a feature
-  * For a sustained non-prototype code base you save costs due to
-    * Fewer defects
-    * A more agile code base (future changes are less costly to make)
+For a sustained non-prototype code base you should save on time and costs due to
+* Fewer defects
+* A more agile code base (future changes are less costly to make)
+* Freeing up your own time
 
-This configuration pushes you towards a large investment in alignment via /gril-with-docs and then mostly optional involvement after that point.
-If configured and allowed, the agent can send Pull Requests.
+
+## Workflow
+
+The Overall flow:
+
+Find work -> Spec with a grilling session -> create Tickets -> Implement a ticket
+
+Workflows are started by you, normally with a frontier model using these skills:
+
+* /grill-with-docs (new feature or enhancement)
+  * /improve-codebase-architecture (cleanup your slop, goes into a grilling session)
+* /diagnosing-bugs
+
+Next work can then be broken down into slices and published with:
+
+* /tickets (/github-tickets for Github users)
+
+Then implemented with
+
+* /implement
+
+This orcestrates planning, implementing, and reviewing. If you install the agents in this repo, it will use them to switch between opus for planning and review and Sonnet for implementation.
+
 
 ## Docs
 
@@ -75,29 +101,6 @@ Generate a project's `CODING_STANDARDS.md` from this repository's
 
 Positional arguments name which `standards/*.md` documents to add to the standard and in which order.
 
-
-## Workflow
-
-The Overall flow:
-
-Find work -> Spec with a grilling session -> create Tickets -> Implement a ticket
-
-Workflows are started by you, normally with a frontier model using these skills:
-
-* /grill-with-docs (new feature or enhancement)
-  * /improve-codebase-architecture (cleanup your slop, goes into a grilling session)
-* /diagnosing-bugs
-
-Next work can then be broken down into slices and published with:
-
-* /tickets (/github-tickets for Github users)
-
-Then implemented with
-
-* /implement
-
-This orcestrates planning, implementing, and reviewing. If you install the agents in this repo, it will use them to switch between opus for planning and review and Sonnet for implementation.
-
 You may not always go through the full flow. Sometimes the bug seems very simple and you can just ask the agent to fix it and then send a /pull-request. Or you think a grilling session is unnecessary for a simple change and you go from a conversation to /tickets. The workflow has lots of pieces that you can use however you see fit.
 
 
@@ -130,14 +133,13 @@ The workflow in this repo does an automatic planning mode (no user approval requ
 
 A separate agent provides an adversarial review of both the plan and the code.
 
-#### Artifact-based handoffs
-
-The `/implement` skill starts planning, implementation, and review agents with fresh context instead of inheriting the main conversation.
-The orchestrator points agents to task-scoped Markdown artifacts in a temporary directory outside the repository.
-
 #### Agent sends a Pull Request
 
 A /pull-request skill is provided. This is Github specific and conditional on setting up access and instructing in AGENTS.md/CLAUDE.md to send a PR.
+
+#### Include code references in tickets
+
+/spec and /tickets override the original /to-spec and /to-tickets so that they include code refrences.
 
 ## Engineering discipline
 
