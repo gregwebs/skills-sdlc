@@ -4,7 +4,7 @@ set -euo pipefail
 
 REPOSITORY_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 INSTALLER="$REPOSITORY_ROOT/scripts/install-agents.sh"
-TEMP_ROOT=$(mktemp -d /private/tmp/claude-conf-install-agents.XXXXXX)
+TEMP_ROOT=$(mktemp -d /private/tmp/skills-sdlc-install-agents.XXXXXX)
 trap 'rm -rf "$TEMP_ROOT"' EXIT
 
 fail() {

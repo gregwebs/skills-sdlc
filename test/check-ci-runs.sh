@@ -19,7 +19,7 @@ if [ -d /private/tmp ]; then
 else
   TEMP_ROOT=/tmp
 fi
-WORK=$(mktemp -d "$TEMP_ROOT/claude-conf-check-ci.XXXXXX")
+WORK=$(mktemp -d "$TEMP_ROOT/skills-sdlc-check-ci.XXXXXX")
 trap 'rm -rf "$WORK"' EXIT
 
 REPO_DIR="$WORK/repo"

@@ -4,7 +4,7 @@ set -euo pipefail
 
 REPOSITORY_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 INSTALLER="$REPOSITORY_ROOT/scripts/install-skills.sh"
-TEMP_ROOT=$(mktemp -d /private/tmp/claude-conf-install-skills.XXXXXX)
+TEMP_ROOT=$(mktemp -d /private/tmp/skills-sdlc-install-skills.XXXXXX)
 trap 'rm -rf "$TEMP_ROOT"' EXIT
 
 HOME="$TEMP_ROOT/home"

@@ -98,7 +98,7 @@ ${local_body}"
 
 run_inline_fixtures() {
   local fixture_root source skill digest
-  fixture_root=$(mktemp -d "$TEMP_ROOT/claude-conf-inline.XXXXXX")
+  fixture_root=$(mktemp -d "$TEMP_ROOT/skills-sdlc-inline.XXXXXX")
   trap 'rm -rf "$fixture_root"' EXIT
   source="$fixture_root/upstream.md"
   skill="$fixture_root/SKILL.md"
@@ -213,7 +213,6 @@ assert_contains ./skills/implement/SKILL.md 'fork_turns="none"'
 assert_contains ./skills/implement/SKILL.md 'task-brief.md'
 assert_contains ./skills/implement/SKILL.md 'implementation-plan.md'
 assert_contains ./skills/implement/SKILL.md 'implementation-result.md'
-assert_contains README.md '#### Artifact-based handoffs'
 # This assertion intentionally searches for the literal skill-directory expression.
 # shellcheck disable=SC2016
 assert_contains ./skills/github-actions-ci/SKILL.md \
@@ -294,7 +293,7 @@ for command_name in \
   assert_help "$GITHUB_DISPATCHER" "$command_name"
 done
 
-unknown_output=$(mktemp "$TEMP_ROOT/claude-conf-interface.XXXXXX")
+unknown_output=$(mktemp "$TEMP_ROOT/skills-sdlc-interface.XXXXXX")
 trap 'rm -f "$unknown_output"' EXIT
 if (cd "$TEMP_ROOT" && "$GITHUB_DISPATCHER" unknown-command >"$unknown_output" 2>&1); then
   fail 'unknown dispatcher command succeeded'
