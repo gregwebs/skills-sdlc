@@ -62,6 +62,8 @@ These are self-contained. The plan restates all needed issue detail.
 - Run typechecking regularly, single test files regularly, and the full test suite once at the end.
 - Do not document *what* code does; make it self-documenting via good names/extraction. Add *why* comments only where a requirement or a deliberately-rejected alternative needs explaining.
 - Stay strictly within this ticket's scope.
+- Perform a `/code-review` of your own code changes but without any sub-agents. Your inputs are the spec and your working changes are the fixed point.
+
 
 #### STOP immediately and report if:
 * The plan has a critical gap
@@ -72,7 +74,8 @@ These are self-contained. The plan restates all needed issue detail.
 
 Persist a final report as `implementation-result.md`.
 
-Separately, extract all verification steps (from the plan and anything you performed or recommend) into  `verifications.md`.
+Separately, extract all verification (from the plan and anything you performed or recommend) into  `verifications.md`.
+Note whether the verifications have been performed (and their result).
 
 ## Phase 3 - Review
 
