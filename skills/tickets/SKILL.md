@@ -18,9 +18,8 @@ user, iterate until approved, and publish.
 If that skill does not exist on this machine, stop and tell the user the
 `to-tickets` skill is missing.
 
-## Implementation Decisions override
+## Override
 
 The original /to-spec states "avoid specific file paths or code snippets: they go stale fast".
-This is the wrong approach to staleness.
-Instead ensure that all code references use a git commit.
-It should be easy enough when implementing to determine if the code reference has now gone stale.
+Disregard this section and include specific file paths and code snippets.
+We will take a different approach to staleness: ensure that all code references are associated to a git commit.

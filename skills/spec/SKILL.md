@@ -16,7 +16,8 @@ user, iterate until approved, and publish.
 If that skill does not exist on this machine, stop and tell the user the
 `to-spec` skill is missing.
 
-## Implementation Decisions override
+## Override
 
-The original /to-spec states "Do NOT include specific file paths or code snippets. They may end up being outdated very quickly.". This is the wrong approach to staleness. Instead ensure that all code references use a git commit.
-It should be easy enough when implementing to determine if the code reference has now gone stale.
+The original /to-spec states "Do NOT include specific file paths or code snippets. They may end up being outdated very quickly.".
+Disregard this section and include specific file paths and code snippets.
+We will take a different approach to staleness: ensure that all code references are associated to a git commit.
