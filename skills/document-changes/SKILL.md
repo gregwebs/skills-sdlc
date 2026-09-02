@@ -13,7 +13,7 @@ The ticket or spec has information that should be included or referenced (if lin
 A change record should have additional detail.
 If an implementation plan is available, that should include most detailed information needed.
 
-Use the /explain-changes skill to explain the changes.
+Use the /explain-changes skill to explain the changes, but omit the quiz.
 Include technical decisions, completed checklist items, and the verifications performed.
 
 Capture follow-on information that would help the next related change.
