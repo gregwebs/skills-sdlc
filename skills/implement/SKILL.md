@@ -44,7 +44,8 @@ Delegate to a fresh `implementer` sub-agent with only
 If the required implementer delegation is unavailable, stop after
 planning and ask the user for an implementer/model handoff (the /handoff skill may be available). Do not execute the plan inline on the planning model.
 
-If the implementer stops due to a plan issue, have the planner sub-agent review the plan issue and ammend the plan accordingly.
+If the implementer stops due to a plan issue, have the planner sub-agent review the plan issue and revise the plan accordingly.
+Then restart **Phase 2 - Plan execution** with the revised implementation plan. The first step will be to review any existing implementation changes and make sure it satisfies with the newly revised plan. If a change does not, delete or overwrite the change.
 
 ### implementer sub-agent prompt
 
