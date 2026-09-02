@@ -44,6 +44,7 @@ Delegate to a fresh `implementer` sub-agent with only
 If the required implementer delegation is unavailable, stop after
 planning and ask the user for an implementer/model handoff (the /handoff skill may be available). Do not execute the plan inline on the planning model.
 
+If the implementer stops due to a plan issue, have the planner sub-agent review the plan issue and ammend the plan accordingly.
 
 ### implementer sub-agent prompt
 
@@ -66,9 +67,11 @@ These are self-contained. The plan restates all needed issue detail.
 
 
 #### STOP immediately and report if:
-* The plan has a critical gap
-* You don't understand an instruction
 * Verification fails repeatedly
+* The plan
+  * has a critical gap
+  * an instruction you don't understand
+
 
 #### Output
 
