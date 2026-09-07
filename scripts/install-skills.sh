@@ -5,7 +5,8 @@ set -euo pipefail
 
 REPOSITORY_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LOCAL_SKILLS_DIR="$REPOSITORY_ROOT/.agents/skills"
-UPSTREAM_SKILLS_DIR="${HOME}/.agents/skills"
+UPSTREAM_SKILLS_DIR="$REPOSITORY_ROOT/vendor/mattpocock/skills"
+UPSTREAM_SKILLS_DIR_EXPLICIT=false
 INSTALL_DIR="${HOME}/.agent/skills"
 SCAN_DIR="$REPOSITORY_ROOT"
 FORCE=false
@@ -15,12 +16,12 @@ usage() {
   cat <<'EOF'
 Usage: ./scripts/install-skills.sh [options]
 
-Symlink this repository's skill overrides and the Matt Pocock skills they
-reference into ~/.agent/skills. If ~/.claude already exists, install matching
-links into its ~/.claude/skills directory too.
+Symlink this repository's skill overrides and the referenced Matt Pocock skills
+from its pinned submodule into ~/.agent/skills. If ~/.claude already exists,
+install matching links into its ~/.claude/skills directory too.
 
 Options:
-  --force                       Install missing Matt Pocock skills, then continue.
+  --force                       Back up and replace destination conflicts.
   --dry-run                     Print the actions without changing files.
   --local-skills-dir DIR        Override the repository skill source directory.
   --upstream-skills-dir DIR     Override the Matt Pocock skill source directory.
@@ -28,8 +29,8 @@ Options:
   --scan-dir DIR                Override the documentation and skill scan root.
   -h, --help                    Show this help text.
 
-Missing dependencies are not installed unless --force is provided. Their
-installer is `npx skills@latest add mattpocock/skills`.
+The production upstream source is vendor/mattpocock/skills. Initialize it with:
+  git submodule update --init --recursive
 EOF
 }
 
@@ -60,6 +61,7 @@ while [ "$#" -gt 0 ]; do
     --upstream-skills-dir)
       [ "$#" -ge 2 ] || die "--upstream-skills-dir requires a directory"
       UPSTREAM_SKILLS_DIR="$2"
+      UPSTREAM_SKILLS_DIR_EXPLICIT=true
       shift
       ;;
     --install-dir)
@@ -83,7 +85,15 @@ done
 
 [ -d "$LOCAL_SKILLS_DIR" ] || die "local skill directory does not exist: $LOCAL_SKILLS_DIR"
 [ -d "$SCAN_DIR" ] || die "scan directory does not exist: $SCAN_DIR"
+if [ ! -d "$UPSTREAM_SKILLS_DIR" ]; then
+  if "$UPSTREAM_SKILLS_DIR_EXPLICIT"; then
+    die "upstream skill directory does not exist: $UPSTREAM_SKILLS_DIR"
+  fi
+  die "Matt Pocock submodule is uninitialized: $REPOSITORY_ROOT/vendor/mattpocock (run: git submodule update --init --recursive)"
+fi
 LOCAL_SKILLS_DIR="$(cd "$LOCAL_SKILLS_DIR" && pwd -P)"
+UPSTREAM_SKILLS_DIR="$(cd "$UPSTREAM_SKILLS_DIR" && pwd -P)"
+SCAN_DIR="$(cd "$SCAN_DIR" && pwd -P)"
 
 # This inventory lets the audit distinguish a slash-command reference from a
 # filesystem path or a built-in command such as /plan. Keep it in sync with the
@@ -121,7 +131,11 @@ is_local_skill() {
 }
 
 mapfile -t referenced_commands < <(
-  find "$SCAN_DIR" -path '*/.git' -prune -o -type f \( -name '*.md' -o -name '*.yaml' -o -name '*.yml' \) -print0 |
+  find "$SCAN_DIR" \
+    -path '*/.git' -prune -o \
+    -path "$REPOSITORY_ROOT/vendor/mattpocock" -prune -o \
+    -path "$UPSTREAM_SKILLS_DIR" -prune -o \
+    -type f \( -name '*.md' -o -name '*.yaml' -o -name '*.yml' \) -print0 |
     xargs -0 rg --no-filename --only-matching --pcre2 \
       '(?<![[:alnum:]_.:/~-])/([a-z][a-z0-9-]*)(?![a-z0-9-]|/)' 2>/dev/null |
     sed 's#^/##' | sort -u
@@ -134,27 +148,49 @@ for command in "${referenced_commands[@]}"; do
   fi
 done
 
+resolve_mattpocock_skill_dir() {
+  local name="$1"
+  local -a matches=()
+  local candidate
+
+  if [ -f "$UPSTREAM_SKILLS_DIR/$name/SKILL.md" ]; then
+    matches+=("$UPSTREAM_SKILLS_DIR/$name")
+  fi
+  shopt -s nullglob
+  for candidate in "$UPSTREAM_SKILLS_DIR"/*/"$name"/SKILL.md; do
+    matches+=("${candidate%/SKILL.md}")
+  done
+  shopt -u nullglob
+
+  case "${#matches[@]}" in
+    0) return 1 ;;
+    1) printf '%s\n' "${matches[0]}" ;;
+    *) return 2 ;;
+  esac
+}
+
+dependency_sources=()
 missing_dependencies=()
+ambiguous_dependencies=()
 for dependency in "${dependencies[@]}"; do
-  [ -f "$UPSTREAM_SKILLS_DIR/$dependency/SKILL.md" ] || missing_dependencies+=("$dependency")
+  if source=$(resolve_mattpocock_skill_dir "$dependency"); then
+    dependency_sources+=("$source")
+  else
+    case "$?" in
+      1) missing_dependencies+=("$dependency") ;;
+      2) ambiguous_dependencies+=("$dependency") ;;
+    esac
+  fi
 done
 
 if [ "${#missing_dependencies[@]}" -gt 0 ]; then
   printf 'Missing Matt Pocock skills: %s\n' "${missing_dependencies[*]}" >&2
-  if ! "$FORCE"; then
-    die 'rerun with --force to install missing dependencies'
-  fi
-  if "$DRY_RUN"; then
-    echo 'Would run: npx skills@latest add mattpocock/skills' >&2
-  else
-    (
-      cd "$HOME"
-      npx skills@latest add mattpocock/skills
-    )
-  fi
-  for dependency in "${missing_dependencies[@]}"; do
-    [ -f "$UPSTREAM_SKILLS_DIR/$dependency/SKILL.md" ] || die "dependency is still missing after install: $dependency"
-  done
+fi
+if [ "${#ambiguous_dependencies[@]}" -gt 0 ]; then
+  printf 'Ambiguous Matt Pocock skills: %s\n' "${ambiguous_dependencies[*]}" >&2
+fi
+if [ "${#missing_dependencies[@]}" -gt 0 ] || [ "${#ambiguous_dependencies[@]}" -gt 0 ]; then
+  die 'all referenced Matt Pocock skills must resolve exactly once in the upstream source'
 fi
 
 absolute_dir() {
@@ -178,14 +214,14 @@ link_skill() {
 }
 
 link_all_skills() {
-  local destination="$1" name source
+  local destination="$1" name source index
   run mkdir -p "$destination"
   for name in "${local_skills[@]}"; do
     source="$(absolute_dir "$LOCAL_SKILLS_DIR/$name")"
     link_skill "$destination" "$source"
   done
-  for name in "${dependencies[@]}"; do
-    source="$(absolute_dir "$UPSTREAM_SKILLS_DIR/$name")"
+  for index in "${!dependencies[@]}"; do
+    source="$(absolute_dir "${dependency_sources[$index]}")"
     link_skill "$destination" "$source"
   done
 }
