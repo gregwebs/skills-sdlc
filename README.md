@@ -61,23 +61,27 @@ You customize things for your repo by editing
 
 ### Installing
 
-This relies heavily on mattpocock/skills.
-
-```
-npx skills@latest add mattpocock/skills
-```
-
-After the Matt Pocock skills are available in `~/.agents/skills`, install this
-repository's overrides and the referenced upstream dependencies with:
+Clone with the pinned Matt Pocock skills submodule, then install this repository's
+local overrides and referenced upstream dependencies:
 
 ```sh
+git clone --recurse-submodules https://github.com/gregwebs/skills-sdlc.git
+cd skills-sdlc
 ./scripts/install-skills.sh
 ```
 
-This script creates symlinks to this github repo.
-That makes it easy to upgrade by pulling the github repo.
+For an existing checkout, initialize the recorded submodule before installing:
 
-The installer ensures that the dependent Matt Pocock skills are already installed.
+```sh
+git submodule update --init --recursive
+./scripts/install-skills.sh
+```
+
+The installer links local overrides and only the upstream skills referenced by
+this repository. Links target this checkout; after pulling the superproject,
+update initialized submodules to their recorded gitlinks before reinstalling if
+necessary. A plain pull can leave the upstream checkout old or missing.
+
 When `~/.claude` exists, matching links are also installed in `~/.claude/skills`.
 
 Install the repository's agent definitions with:

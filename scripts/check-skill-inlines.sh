@@ -468,6 +468,7 @@ check_group() {
   local group_digest="$5"
   local components_seen="$6"
   local components_file="$7"
+  local declaring_dir="$8"
   local component_count upstream_path source_headings source_size
   local scope_offset scope_level scope_end actual_digest
   local source_section local_section source_offset
@@ -511,6 +512,8 @@ check_group() {
       return
     fi
     upstream_path="${HOME%/}/${group_source:2}"
+  elif [[ "$group_source" == ./* || "$group_source" == ../* ]]; then
+    upstream_path="$declaring_dir/$group_source"
   else
     fail_check "$skill_display" "unsupported relative source path: $group_source"
     return
@@ -566,7 +569,7 @@ check_group() {
 process_skill() {
   local skill_path="$1"
   local skill_display="$2"
-  local parsed_file local_headings components_file
+  local parsed_file local_headings components_file declaring_dir
   local operation first second
   local group_active=0
   local group_source=''
@@ -584,6 +587,7 @@ process_skill() {
     fail_check "$skill_display" 'cannot read local skill'
     return
   fi
+  declaring_dir="$(cd "$(dirname "$skill_path")" && pwd -P)"
   if ! parse_inline_metadata "$skill_path" "$parsed_file"; then
     return
   fi
@@ -601,7 +605,7 @@ process_skill() {
         if [ "$group_active" -eq 1 ]; then
           check_group "$skill_display" "$local_headings" \
             "$group_source" "$group_scope" "$group_digest" \
-            "$components_seen" "$components_file"
+            "$components_seen" "$components_file" "$declaring_dir"
         fi
         group_active=1
         group_source="$first"
@@ -628,7 +632,7 @@ process_skill() {
   if [ "$group_active" -eq 1 ]; then
     check_group "$skill_display" "$local_headings" \
       "$group_source" "$group_scope" "$group_digest" \
-      "$components_seen" "$components_file"
+      "$components_seen" "$components_file" "$declaring_dir"
   fi
 }
 

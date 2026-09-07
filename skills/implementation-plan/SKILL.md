@@ -3,7 +3,7 @@ name: implementation-plan
 description: "Create a detailed Implementation Plan for a ticket or spec, corresponding to a single Pull Request."
 metadata:
   inlined-from:
-    - source: ~/.agents/skills/code-review/SKILL.md
+    - source: ../../vendor/mattpocock/skills/engineering/code-review/SKILL.md
       source-scope: "## Process"
       source-scope-sha256: "26477abdda062b77d1f11e4666a8ed60bbde57b6b50dceb74a0a0d73aed3b3e2"
       components:

@@ -108,6 +108,14 @@ run_inline_fixtures() {
   write_inline_skill "$skill" "$source" "$digest" '' '' $'### Local\ntext\n'
   assert_checker_result pass "$skill"
 
+  write_inline_skill "$skill" './upstream.md' "$digest" '' '' $'### Local\ntext\n'
+  assert_checker_result pass "$skill"
+  mkdir -p "$fixture_root/nested"
+  write_fixture "$fixture_root/nested/upstream.md" $'## Process\n\n### Source\ntext\n'
+  write_inline_skill "$fixture_root/nested/SKILL.md" '../upstream.md' "$digest" '' '' $'### Local\ntext\n'
+  assert_checker_result pass "$fixture_root/nested/SKILL.md"
+  write_inline_skill "$skill" "$source" "$digest" '' '' $'### Local\ntext\n'
+
   write_inline_skill "$skill" "$source" "$digest" \
     $'  short-description: fixture\n' '' $'### Local\ntext\n'
   assert_checker_result pass "$skill"
@@ -265,6 +273,28 @@ assert_contains ./skills/breakdown/SKILL.md 'inlined-from:'
 assert_contains ./skills/breakdown/SKILL.md '### 4. Quiz the user'
 assert_contains ./skills/implementation-plan/SKILL.md 'inlined-from:'
 assert_contains ./skills/implementation-plan/SKILL.md '### 2. Identify the spec source'
+assert_contains .gitmodules 'path = vendor/mattpocock'
+assert_contains .gitmodules 'url = https://github.com/mattpocock/skills.git'
+gitlink_mode=$(git -C "$REPOSITORY_ROOT" ls-files --stage -- vendor/mattpocock | awk '{print $1}')
+[ "$gitlink_mode" = 160000 ] || fail 'expected vendor/mattpocock to be a gitlink'
+assert_readable "$REPOSITORY_ROOT/vendor/mattpocock/LICENSE"
+for upstream_skill in \
+  engineering/code-review \
+  engineering/codebase-design \
+  engineering/diagnosing-bugs \
+  engineering/grill-with-docs \
+  engineering/improve-codebase-architecture \
+  engineering/tdd \
+  engineering/to-spec \
+  engineering/to-tickets \
+  productivity/handoff; do
+  assert_readable "$REPOSITORY_ROOT/vendor/mattpocock/skills/$upstream_skill/SKILL.md"
+done
+assert_contains ./skills/breakdown/SKILL.md '../../vendor/mattpocock/'
+assert_contains ./skills/implementation-plan/SKILL.md '../../vendor/mattpocock/'
+if rg -Fq '.agents/skills' "$REPOSITORY_ROOT/skills/breakdown/SKILL.md" "$REPOSITORY_ROOT/skills/implementation-plan/SKILL.md"; then
+  fail 'inline provenance relies on home-directory skills'
+fi
 for skill in implement github-tickets pull-request github-app github-actions-ci; do
   if rg -q 'inlined-from:' "$REPOSITORY_ROOT/./skills/$skill/SKILL.md"; then
     fail "unexpected inline provenance inventory for $skill"

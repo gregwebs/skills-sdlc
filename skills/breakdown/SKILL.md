@@ -3,9 +3,9 @@ name: breakdown
 description: Break a plan, spec, or the current conversation into a set of tracer-bullet tickets, each declaring its blocking edges
 metadata:
   inlined-from:
-    - source: ~/.agents/skills/to-tickets/SKILL.md
+    - source: ../../vendor/mattpocock/skills/engineering/to-tickets/SKILL.md
       source-scope: "## Process"
-      source-scope-sha256: "7d56cc72dd143ddb75808194e61b249c0be626b8bbab3541504f55e21087e076"
+      source-scope-sha256: "ae2ac74402ccc657dbe771d0dc2489f6f8a9f48c4cfa2b3bdcde9a529253c9d9"
       components:
         - source-section: "### 1. Gather context"
           local-section: "### 1. Gather context"
