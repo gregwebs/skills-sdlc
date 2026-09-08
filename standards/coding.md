@@ -8,13 +8,15 @@ Comments state design constraints, invariants, and **why**. Not **what** the cod
 
 ### Testing
 
-Look at the /tdd skill for further testing guidance.
-Refactor code into small testable functions. Write lots of tests without using mocks.
-
+Think about areas likely to have subtle bugs before implementing; for each, state likely mistakes and plausible alternative interpretations, then come up with a check where the results differ (prefer asymmetric / boundary examples on both sides of the boundary).
+After implementing, for high risk areas, independently re-derive the result without context on production code and compare.
+When feasible, use property-based testing or randomized inputs to try to explore the space, minimizing effort on no-panic or no-crash randomization. Commit these as test cases.
+When randomizing, lean towards inputs that will explore interesting state and code paths (don't just naively randomize inputs that all fall into the same error paths); this may require structured random inputs
+Use contracts- automated contract is preferred, but contracts as comments can be used.
 Write seeds for creating data that is needed for testing.
+Use mocks only as a last resort.
+Look at the /tdd skill for further testing guidance.
 
-Use property based testing, including smart quickcheck style tests.
-Use contracts- either automated contract testing, or state contracts as comments in functions.
 
 
 ### Types
