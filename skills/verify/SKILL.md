@@ -1,8 +1,7 @@
-# Testing Skill
-
-## Purpose
-
-Verify software through testing.
+---
+name: verify
+description: "Verify software by intentional testing."
+---
 
 # Core Principles
 
