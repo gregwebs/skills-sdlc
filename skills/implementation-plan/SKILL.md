@@ -55,10 +55,11 @@ High-level details:
 Implementation details:
 - Walk through the changes in conceptual groups, ordered by execution or dependency flow rather than arbitrary file order. Include precise file and line references when available, but do not dump an entire diff.
 - Detailed file-level type and function signature changes, including snippets for important non-obvious ideas
-- Tests to implement
 - Documentation updates
-- Include a pre-agreed TDD seam, or an explanation of why automated tests do not apply.
-- Verifications to perform
+- Verifications (tests) using the `/verify` skill
+  - Interfaces and boundaries
+  - High value and high defect areas
+  - Important verifications to perform
 
 Include the assumptions, and relevant standards constraints (these may be present in the spec).
 Explain relevant failure modes and how to handle them.

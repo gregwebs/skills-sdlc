@@ -59,11 +59,9 @@ These are self-contained. The plan restates all needed issue detail.
 #### How to work
 
 - Follow the plan's step-by-step sequence.
-- Use TDD at the seams the plan identifies (invoke the `/tdd` skill where practical).
-- Read repo documentation (INSERT SPECIFIC DOCS) for conventions before editing code.
-- Run typechecking regularly, single test files regularly, and the full test suite once at the end.
-- Do not document *what* code does; make it self-documenting via good names/extraction. Add *why* comments only where a requirement or a deliberately-rejected alternative needs explaining.
 - Stay strictly within this ticket's scope.
+- Use `/verify` to verify code as it is written.
+- Read repo documentation (INSERT SPECIFIC DOCS) for conventions before editing code.
 - Perform a `/code-review` of your own code changes but without any sub-agents. Your inputs are the spec and your working changes are the fixed point.
 
 
