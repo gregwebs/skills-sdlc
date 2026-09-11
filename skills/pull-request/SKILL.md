@@ -55,4 +55,12 @@ When CI access is available and the user requested PR follow-up, check the CI ru
 If there are CI failures, investigate them and change the PR.
 
 If the CI failures are not related to your work, suggest filing an issue or otherwise fixing them separately.
-If they are related to your work, and the changes needed are not minor, ensure proper usage of standard flow for code changes.
+If they are related to your work, and the changes needed are not minor, fix them using the same workflow you used to write the code.
+
+## Cleaning up history
+
+Before pushing the PR, squash merge commits into a useful history.
+Once the PR is opened, additional commits should be added on so reviewers can see additional changes.
+If additional commits added onto the PR are not useful for history
+* if it is best to squash merge the PR into a single commit, tell the user
+* otherwise offer to squash a subset of the commits together
