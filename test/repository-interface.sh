@@ -213,10 +213,6 @@ for tracked_path in \
   assert_tracked "$tracked_path"
 done
 
-assert_contains .claude/agents/planner.md 'Read and follow the /implementation-plan skill.'
-assert_contains .codex/agents/planner.toml 'Read and follow the /implementation-plan skill.'
-assert_contains .claude/agents/implementer.md 'Read and follow the Phase 2 - Plan execution section of the /implement skill.'
-assert_contains .codex/agents/implementer.toml 'Read and follow the Phase 2 - Plan execution section of the /implement skill.'
 assert_contains ./skills/implement/SKILL.md 'fork_turns="none"'
 assert_contains ./skills/implement/SKILL.md 'task-brief.md'
 assert_contains ./skills/implement/SKILL.md 'implementation-plan.md'
@@ -233,23 +229,13 @@ if rg -q 'Pass the .* output \*\*verbatim\*\*' \
   "$REPOSITORY_ROOT/./skills/implement/SKILL.md"; then
   fail 'implement workflow passes planner output inline instead of by artifact'
 fi
-for adapter in \
-  .claude/agents/planner.md \
-  .claude/agents/implementer.md \
-  .codex/agents/planner.toml \
-  .codex/agents/implementer.toml; do
-  assert_contains "$adapter" 'delegated by /implement'
-  if rg -q '\./skills/(implementation-plan|implement)/SKILL\.md' "$REPOSITORY_ROOT/$adapter"; then
-    fail "adapter contains a repository-local skill path: $adapter"
-  fi
-done
 if rg -q '\bmain\b' "$REPOSITORY_ROOT/./skills/pull-request/SKILL.md"; then
   fail 'pull-request instructions assume main instead of the discovered default branch'
 fi
 if rg -q 'docs/change/' "$REPOSITORY_ROOT/./skills/github-app"; then
   fail 'GitHub App instructions reference absent change history files'
 fi
-if rg -q '\./skills/|docs/change/' "$REPOSITORY_ROOT/.agents/skills/github-app/scripts"; then
+if rg -q '\./skills/|docs/change/' "$REPOSITORY_ROOT/skills/github-app/scripts"; then
   fail 'GitHub App bundled scripts contain a repository-local documentation reference'
 fi
 for script in \
@@ -292,7 +278,7 @@ for upstream_skill in \
 done
 assert_contains ./skills/breakdown/SKILL.md '../../vendor/mattpocock/'
 assert_contains ./skills/implementation-plan/SKILL.md '../../vendor/mattpocock/'
-if rg -Fq '.agents/skills' "$REPOSITORY_ROOT/skills/breakdown/SKILL.md" "$REPOSITORY_ROOT/skills/implementation-plan/SKILL.md"; then
+if rg -Fq '.agent/skills' "$REPOSITORY_ROOT/skills/breakdown/SKILL.md" "$REPOSITORY_ROOT/skills/implementation-plan/SKILL.md"; then
   fail 'inline provenance relies on home-directory skills'
 fi
 for skill in implement github-tickets pull-request github-app github-actions-ci; do
