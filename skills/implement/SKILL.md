@@ -105,6 +105,8 @@ Delegate to a fresh `implementer` sub-agent to perform required verifications. T
 * `implementation-result.md`
 * `verifications.md`
 
+Push back on any claims that verifications tests cannot be run in the environment- investigate those claims yourself.
+
 ### implementer sub-agent
 
 Verify manually that the changes work as expected in an e2e end user setting.
