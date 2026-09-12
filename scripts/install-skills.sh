@@ -4,7 +4,7 @@
 set -euo pipefail
 
 REPOSITORY_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-LOCAL_SKILLS_DIR="$REPOSITORY_ROOT/.agents/skills"
+LOCAL_SKILLS_DIR="$REPOSITORY_ROOT/skills"
 UPSTREAM_SKILLS_DIR="$REPOSITORY_ROOT/vendor/mattpocock/skills"
 UPSTREAM_SKILLS_DIR_EXPLICIT=false
 INSTALL_DIR="${HOME}/.agent/skills"
@@ -204,11 +204,12 @@ link_skill() {
   if [ -e "$target" ] || [ -L "$target" ]; then
     [ "$target" -ef "$source" ] && return
     if ! "$FORCE"; then
-      die "refusing to replace existing skill link: $target $source (rerun with --force)"
+      echo "refusing to replace existing skill link: $target $source (rerun with --force)"
+    else
+      backup="$target.backup.$(date +%Y%m%d%H%M%S)"
+      run mv "$target" "$backup"
+      echo "Backed up $target to $backup" >&2
     fi
-    backup="$target.backup.$(date +%Y%m%d%H%M%S)"
-    run mv "$target" "$backup"
-    echo "Backed up $target to $backup" >&2
   fi
   run ln -s "$source" "$target"
 }
