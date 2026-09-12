@@ -15,13 +15,16 @@ The `planner` agent is smarter and more costly and produces the design.
 The `implementer` agent implements the plan and is designed to lower costs.
 The sub-agents can ask you to interact with the user if needed.
 
-Artifacts are passed between sub-agents so they start with a summary of all useful information from other sub-agents: this minimizes re-exploration. Create a task-scoped temporary directory outside the repository. Do not commit its contents. Pass absolute artifact paths between agents. Artifact editing should be done incrementally- that way if an agent's session ends prematurely more information is persisted.
+Artifacts are passed between sub-agents so they start with a summary of all useful information from other sub-agents: this minimizes re-exploration. Create a task-scoped temporary directory outside the repository. Do not commit its contents. Pass absolute artifact paths between agents.
+Agents should edit artifacts incrementally- that way if an agent's session ends prematurely more information is persisted.
 
 Start every planner, reviewer, and implementer delegation without inherited
 conversation history. In Codex use `fork_turns="none"`; use the equivalent
 empty-context option on other platforms. Give the delegate only its requested
 action and the artifact or source paths it needs. Do not paste the conversation
 transcript into the delegation prompt.
+
+This skill uses other skills. If a skill is missing, stop and ask the user to install it.
 
 # Flow
 
