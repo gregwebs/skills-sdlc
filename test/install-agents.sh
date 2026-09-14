@@ -37,9 +37,10 @@ assert_failure() {
 HOME="$TEMP_ROOT/home"
 CLAUDE_SOURCE="$TEMP_ROOT/claude source"
 CODEX_SOURCE="$TEMP_ROOT/codex source"
+PI_SOURCE="$TEMP_ROOT/pi source"
 CLAUDE_INSTALL="$HOME/.claude/agents"
 CODEX_INSTALL="$HOME/.codex/agents"
-mkdir -p "$HOME" "$CLAUDE_SOURCE/nested" "$CODEX_SOURCE/nested"
+mkdir -p "$HOME" "$CLAUDE_SOURCE/nested" "$CODEX_SOURCE/nested" "$PI_SOURCE/nested"
 printf 'claude one\n' >"$CLAUDE_SOURCE/one.md"
 printf 'claude two\n' >"$CLAUDE_SOURCE/two.md"
 printf 'ignored\n' >"$CLAUDE_SOURCE/wrong.toml"
@@ -48,9 +49,14 @@ printf 'codex one\n' >"$CODEX_SOURCE/one.toml"
 printf 'codex two\n' >"$CODEX_SOURCE/two.toml"
 printf 'ignored\n' >"$CODEX_SOURCE/wrong.md"
 printf 'nested\n' >"$CODEX_SOURCE/nested/hidden.toml"
+printf 'pi one\n' >"$PI_SOURCE/one.md"
+printf 'pi two\n' >"$PI_SOURCE/two.toml"
+printf 'ignored\n' >"$PI_SOURCE/wrong.txt"
+printf 'nested\n' >"$PI_SOURCE/nested/hidden.md"
 
 "$INSTALLER" --help >"$TEMP_ROOT/help"
-for option in --dry-run --force --claude-source-dir --codex-source-dir --claude-install-dir --codex-install-dir -h --help; do
+for option in --dry-run --force --claude-source-dir --codex-source-dir --pi-source-dir \
+  --claude-install-dir --codex-install-dir --pi-install-dir -h --help; do
   assert_output "$TEMP_ROOT/help" "$option"
 done
 assert_absent "$CLAUDE_INSTALL"
@@ -77,6 +83,34 @@ if compgen -G "$CLAUDE_INSTALL/one.md.backup.*" >/dev/null; then
   fail 'idempotent install created a backup'
 fi
 
+GATE_HOME="$TEMP_ROOT/gate home"
+mkdir -p "$GATE_HOME"
+HOME="$GATE_HOME" "$INSTALLER" \
+  --claude-source-dir "$CLAUDE_SOURCE" --codex-source-dir "$CODEX_SOURCE" --pi-source-dir "$PI_SOURCE" \
+  --claude-install-dir "$GATE_HOME/.claude/agents" --codex-install-dir "$GATE_HOME/.codex/agents" \
+  >"$TEMP_ROOT/gate-off-output" 2>&1
+assert_absent "$GATE_HOME/.pi"
+assert_output "$TEMP_ROOT/gate-off-output" 'Skipping Pi agents'
+
+mkdir -p "$GATE_HOME/.pi"
+HOME="$GATE_HOME" "$INSTALLER" \
+  --claude-source-dir "$CLAUDE_SOURCE" --codex-source-dir "$CODEX_SOURCE" --pi-source-dir "$PI_SOURCE" \
+  --claude-install-dir "$GATE_HOME/.claude/agents" --codex-install-dir "$GATE_HOME/.codex/agents"
+assert_link_to "$GATE_HOME/.pi/agent/agents/one.md" "$PI_SOURCE/one.md"
+assert_link_to "$GATE_HOME/.pi/agent/agents/two.toml" "$PI_SOURCE/two.toml"
+assert_absent "$GATE_HOME/.pi/agent/agents/wrong.txt"
+assert_absent "$GATE_HOME/.pi/agent/agents/hidden.md"
+
+OVERRIDE_HOME="$TEMP_ROOT/override home"
+OVERRIDE_PI="$TEMP_ROOT/override pi"
+mkdir -p "$OVERRIDE_HOME"
+HOME="$OVERRIDE_HOME" "$INSTALLER" \
+  --claude-source-dir "$CLAUDE_SOURCE" --codex-source-dir "$CODEX_SOURCE" --pi-source-dir "$PI_SOURCE" \
+  --claude-install-dir "$OVERRIDE_HOME/.claude/agents" --codex-install-dir "$OVERRIDE_HOME/.codex/agents" \
+  --pi-install-dir "$OVERRIDE_PI"
+assert_absent "$OVERRIDE_HOME/.pi"
+assert_link_to "$OVERRIDE_PI/one.md" "$PI_SOURCE/one.md"
+
 SYMLINK_ROOT="$TEMP_ROOT/linked claude agents"
 SYMLINK_TARGET="$TEMP_ROOT/linked target"
 mkdir -p "$SYMLINK_TARGET"
@@ -102,47 +136,59 @@ assert_absent "$PREFLIGHT_CODEX"
 
 FORCE_CLAUDE="$TEMP_ROOT/force claude"
 FORCE_CODEX="$TEMP_ROOT/force codex"
-mkdir -p "$FORCE_CLAUDE" "$FORCE_CODEX"
+FORCE_PI="$TEMP_ROOT/force pi"
+mkdir -p "$FORCE_CLAUDE" "$FORCE_CODEX" "$FORCE_PI"
 printf 'first original\n' >"$FORCE_CLAUDE/one.md"
 OTHER_TARGET="$TEMP_ROOT/other.toml"
 printf 'other\n' >"$OTHER_TARGET"
 ln -s "$OTHER_TARGET" "$FORCE_CODEX/one.toml"
+printf 'pi first original\n' >"$FORCE_PI/one.md"
 HOME="$HOME" "$INSTALLER" --force \
-  --claude-source-dir "$CLAUDE_SOURCE" --codex-source-dir "$CODEX_SOURCE" \
-  --claude-install-dir "$FORCE_CLAUDE" --codex-install-dir "$FORCE_CODEX"
+  --claude-source-dir "$CLAUDE_SOURCE" --codex-source-dir "$CODEX_SOURCE" --pi-source-dir "$PI_SOURCE" \
+  --claude-install-dir "$FORCE_CLAUDE" --codex-install-dir "$FORCE_CODEX" --pi-install-dir "$FORCE_PI"
 assert_link_to "$FORCE_CLAUDE/one.md" "$CLAUDE_SOURCE/one.md"
 assert_link_to "$FORCE_CODEX/one.toml" "$CODEX_SOURCE/one.toml"
+assert_link_to "$FORCE_PI/one.md" "$PI_SOURCE/one.md"
 mapfile -t claude_backups < <(compgen -G "$FORCE_CLAUDE/one.md.backup.*")
 mapfile -t codex_backups < <(compgen -G "$FORCE_CODEX/one.toml.backup.*")
+mapfile -t pi_backups < <(compgen -G "$FORCE_PI/one.md.backup.*")
 [ "${#claude_backups[@]}" -eq 1 ] || fail 'expected Claude backup'
 [ "${#codex_backups[@]}" -eq 1 ] || fail 'expected Codex backup'
+[ "${#pi_backups[@]}" -eq 1 ] || fail 'expected Pi backup'
 assert_file_content "${claude_backups[0]}" 'first original'
 assert_link_to "${codex_backups[0]}" "$OTHER_TARGET"
+assert_file_content "${pi_backups[0]}" 'pi first original'
 mv "$FORCE_CLAUDE/one.md" "$TEMP_ROOT/displaced correct Claude link"
 printf 'second original\n' >"$FORCE_CLAUDE/one.md"
 HOME="$HOME" "$INSTALLER" --force \
-  --claude-source-dir "$CLAUDE_SOURCE" --codex-source-dir "$CODEX_SOURCE" \
-  --claude-install-dir "$FORCE_CLAUDE" --codex-install-dir "$FORCE_CODEX"
+  --claude-source-dir "$CLAUDE_SOURCE" --codex-source-dir "$CODEX_SOURCE" --pi-source-dir "$PI_SOURCE" \
+  --claude-install-dir "$FORCE_CLAUDE" --codex-install-dir "$FORCE_CODEX" --pi-install-dir "$FORCE_PI"
 mapfile -t claude_backups < <(compgen -G "$FORCE_CLAUDE/one.md.backup.*")
+mapfile -t pi_backups < <(compgen -G "$FORCE_PI/one.md.backup.*")
 [ "${#claude_backups[@]}" -eq 2 ] || fail 'expected distinct Claude backups'
+[ "${#pi_backups[@]}" -eq 1 ] || fail 'idempotent Pi install created a backup'
 for backup in "${claude_backups[@]}"; do
   [ "$(<"$backup")" = 'first original' ] || [ "$(<"$backup")" = 'second original' ] || fail 'backup content was lost'
 done
 
 DRY_CLAUDE="$TEMP_ROOT/dry claude"
 DRY_CODEX="$TEMP_ROOT/dry codex"
+DRY_PI="$TEMP_ROOT/dry pi"
 HOME="$HOME" "$INSTALLER" --dry-run \
-  --claude-source-dir "$CLAUDE_SOURCE" --codex-source-dir "$CODEX_SOURCE" \
-  --claude-install-dir "$DRY_CLAUDE" --codex-install-dir "$DRY_CODEX" >"$TEMP_ROOT/dry-output"
+  --claude-source-dir "$CLAUDE_SOURCE" --codex-source-dir "$CODEX_SOURCE" --pi-source-dir "$PI_SOURCE" \
+  --claude-install-dir "$DRY_CLAUDE" --codex-install-dir "$DRY_CODEX" --pi-install-dir "$DRY_PI" \
+  >"$TEMP_ROOT/dry-output"
 assert_output "$TEMP_ROOT/dry-output" 'mkdir -p'
 assert_output "$TEMP_ROOT/dry-output" 'ln -s'
 assert_absent "$DRY_CLAUDE"
 assert_absent "$DRY_CODEX"
-mkdir -p "$DRY_CLAUDE" "$DRY_CODEX"
+assert_absent "$DRY_PI"
+mkdir -p "$DRY_CLAUDE" "$DRY_CODEX" "$DRY_PI"
 printf 'dry conflict\n' >"$DRY_CLAUDE/one.md"
 HOME="$HOME" "$INSTALLER" --dry-run --force \
-  --claude-source-dir "$CLAUDE_SOURCE" --codex-source-dir "$CODEX_SOURCE" \
-  --claude-install-dir "$DRY_CLAUDE" --codex-install-dir "$DRY_CODEX" >"$TEMP_ROOT/dry-force-output"
+  --claude-source-dir "$CLAUDE_SOURCE" --codex-source-dir "$CODEX_SOURCE" --pi-source-dir "$PI_SOURCE" \
+  --claude-install-dir "$DRY_CLAUDE" --codex-install-dir "$DRY_CODEX" --pi-install-dir "$DRY_PI" \
+  >"$TEMP_ROOT/dry-force-output"
 assert_output "$TEMP_ROOT/dry-force-output" 'mv'
 assert_output "$TEMP_ROOT/dry-force-output" 'ln -s'
 assert_file_content "$DRY_CLAUDE/one.md" 'dry conflict'
@@ -165,10 +211,22 @@ assert_failure env HOME="$HOME" "$INSTALLER" --claude-source-dir "$EMPTY_CLAUDE"
 assert_output "$TEMP_ROOT/output" 'no Claude .md agent files found'
 assert_absent "$TEMP_ROOT/empty result claude"
 assert_absent "$TEMP_ROOT/empty result codex"
+EMPTY_PI="$TEMP_ROOT/empty pi"
+mkdir -p "$EMPTY_PI"
+assert_failure env HOME="$HOME" "$INSTALLER" --claude-source-dir "$CLAUDE_SOURCE" \
+  --codex-source-dir "$CODEX_SOURCE" --pi-source-dir "$EMPTY_PI" \
+  --claude-install-dir "$TEMP_ROOT/empty pi result claude" \
+  --codex-install-dir "$TEMP_ROOT/empty pi result codex" \
+  --pi-install-dir "$TEMP_ROOT/empty pi result pi"
+assert_output "$TEMP_ROOT/output" 'no Pi .md, .toml agent files found'
+assert_absent "$TEMP_ROOT/empty pi result claude"
+assert_absent "$TEMP_ROOT/empty pi result codex"
+assert_absent "$TEMP_ROOT/empty pi result pi"
 
 assert_failure "$INSTALLER" --unknown
 assert_output "$TEMP_ROOT/output" 'install-agents: unknown option: --unknown'
-for option in --claude-source-dir --codex-source-dir --claude-install-dir --codex-install-dir; do
+for option in --claude-source-dir --codex-source-dir --pi-source-dir \
+  --claude-install-dir --codex-install-dir --pi-install-dir; do
   assert_failure "$INSTALLER" "$option"
   assert_output "$TEMP_ROOT/output" "install-agents: $option requires a directory"
 done

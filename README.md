@@ -93,6 +93,8 @@ Install the repository's agent definitions with:
 This links `agents/*.md` into `~/.claude/agents` and `.codex/agents/*.toml`
 into `~/.codex/agents`. Both destination directories are created as needed;
 Overwriting is refused by default: use `--force` to overwrite with a timestamped adjacent backup.
+When `~/.pi` exists, `.pi/agent/agents/*.{md,toml}` is also linked into
+`~/.pi/agent/agents`.
 
 Generate a project's `CODING_STANDARDS.md` from this repository's
 [standards/](./standards) documents with:
