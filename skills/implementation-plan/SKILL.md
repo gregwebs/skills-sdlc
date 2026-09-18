@@ -5,7 +5,7 @@ metadata:
   inlined-from:
     - source: ../../vendor/mattpocock/skills/engineering/code-review/SKILL.md
       source-scope: "## Process"
-      source-scope-sha256: "26477abdda062b77d1f11e4666a8ed60bbde57b6b50dceb74a0a0d73aed3b3e2"
+      source-scope-sha256: "d59f232ddadb9a3b1b73a33308bd1735a597a4d9ebb3b3a7d6a0b31e59d80402"
       components:
         - source-section: "### 2. Identify the spec source"
           local-section: "### Identify the spec source"
@@ -54,10 +54,10 @@ High-level details:
 
 Implementation details:
 - Walk through the changes in conceptual groups, ordered by execution or dependency flow rather than arbitrary file order. Include precise file and line references when available, but do not dump an entire diff.
-- Detailed file-level type and function signature changes, including snippets for important non-obvious ideas
+- Detailed file-level type and function signature changes
+- Implementation snippets for important non-obvious ideas
 - Documentation updates
 - Verifications (tests) using the `/verify` skill
-  - Interfaces and boundaries
   - High value and high defect areas
   - Important verifications to perform
 
