@@ -161,6 +161,15 @@ Agents are perfectly happy to implement linting, ci, e2e tests, etc *if you dire
 The /implement skill directs the agent to use /tdd.
 But the rest is largely project specific and is up to you to specify in your documentation and to spend time implementing these engineering practices.
 
+### Verus proofs
+
+There is a /verus skill for Rust code that uses the [Verus](https://verus-lang.github.io/verus/guide/) verifier.
+It drives the run-verify-edit loop for proof annotations and refuses to change specifications or executable code.
+The result is gated by `verus --no-cheating` and by a bundled diff checker that catches the proof shortcuts the flag misses, such as `axiom` and weakened contracts.
+
+This skill is specific to Verus projects rather than general to software delivery, so it lives under `skills/rust/` and `./scripts/install-skills.sh` skips it.
+Link it into the agent skill directory when working in a Verus project.
+
 ## Security
 
 We want to let the agent do safe operations without prompting us- prompt fatigue creates security risks.
