@@ -40,21 +40,29 @@ The stable repository entry point for GitHub App work is `./scripts/gh-app.sh`;
 its bundled implementation is internal and must not be invoked directly. The
 GitHub Actions skill exposes its bundled checker directly through
 `${CLAUDE_SKILL_DIR}/scripts/check-ci-runs.sh`, so target repositories do not
-need to provide a wrapper. Smoke-test these interfaces with:
+need to provide a wrapper. The Verus skill exposes its cheat checker the same
+way, as `${CLAUDE_SKILL_DIR}/scripts/check-verus-cheats.sh`; it compares the
+pre-edit and current files and needs no Verus installation. That skill is
+Rust-specific and lives at `skills/rust/verus`, which `./scripts/install-skills.sh`
+skips because it only links top-level skill directories. Smoke-test these
+interfaces with:
 
 ```text
 /github-app        -> ./scripts/gh-app.sh -> bundled dispatcher
 /github-actions-ci -> bundled ${CLAUDE_SKILL_DIR}/scripts/check-ci-runs.sh
+/verus             -> bundled ${CLAUDE_SKILL_DIR}/scripts/check-verus-cheats.sh
 ```
 
 ```sh
 ./test/repository-interface.sh
 ./test/check-ci-runs.sh
+./test/check-verus-cheats.sh
 ```
 
 `./test/check-ci-runs.sh` is a fixture-driven functional test (stubbed GitHub API,
 no network) covering the checker's exit codes, including the "no GitHub Actions
-checks apply to this commit" classification.
+checks apply to this commit" classification. `./test/check-verus-cheats.sh`
+is fixture-driven too, covering each proof shortcut the checker must reject.
 
 For local validation, run:
 
@@ -64,6 +72,7 @@ For local validation, run:
 ./test/install-skills.sh
 ./test/repository-interface.sh
 ./test/check-ci-runs.sh
+./test/check-verus-cheats.sh
 ./scripts/check-skill-inlines.sh
 ./scripts/shellcheck.sh
 git diff --check
