@@ -1,3 +1,5 @@
+If AGENTS.local.md exists, read and follow it.
+
 Important Documentation
 
 * README.md is a starting point
