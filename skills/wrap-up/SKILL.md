@@ -3,6 +3,10 @@ name: wrap-up
 description: "After implementing, commit and push up work for final review"
 ---
 
+Ensure you are on a branch at the apropriate location.
+This is usually the tip of main.
+Do a fetch of the origin repo to see if there have been updates.
+
 Commit your work. Reference relevant issues/tickets in your commit message.
 Use the `/document-changes` skill to help record your changes in commit messages and pull requests.
 
