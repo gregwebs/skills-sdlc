@@ -37,7 +37,12 @@ action and the artifact or source paths it needs. Do not paste the conversation
 transcript into the delegation prompt.
 
 Always run subagents without blocking- this makes it possible to watch for stuck subagents.
-Keep checking on subagents to make sure they are not stuck. 15 minute timers is suggested.
+Keep checking on subagents to make sure they are not stuck and to check on their token usage.
+A 15 minute timer is suggested.
+
+Subagents should compact after 200k tokens regardless of its total limit.
+Compaction is accomplished by writing out information and restarting the agent.
+Tell the agent to come to a stopping point and checkpoint information in the standard artifact files and to write out any additional files that will be helpful to re-read on restart. Give it instructions to read these files on restart and continue its work.
 
 # Flow
 
