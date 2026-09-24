@@ -66,9 +66,9 @@ rm -rf "$UPSTREAM/engineering/tdd"
 
 # An omitted default submodule is actionable and cannot create destinations.
 CHECKOUT="$TEMP_ROOT/checkout"
-mkdir -p "$CHECKOUT/scripts" "$CHECKOUT/.agents/skills/custom" "$CHECKOUT/scan"
+mkdir -p "$CHECKOUT/scripts" "$CHECKOUT/skills/custom" "$CHECKOUT/scan"
 cp "$INSTALLER" "$CHECKOUT/scripts/install-skills.sh"
-printf '%s\n' '---' 'name: custom' '---' >"$CHECKOUT/.agents/skills/custom/SKILL.md"
+printf '%s\n' '---' 'name: custom' '---' >"$CHECKOUT/skills/custom/SKILL.md"
 printf '%s\n' 'Use /custom and /tdd.' >"$CHECKOUT/scan/README.md"
 UNINITIALIZED_INSTALL="$TEMP_ROOT/uninitialized-home/.agent/skills"
 expect_failure "$TEMP_ROOT/uninitialized.out" env HOME="$TEMP_ROOT/uninitialized-home" "$CHECKOUT/scripts/install-skills.sh" --install-dir "$UNINITIALIZED_INSTALL" --scan-dir "$CHECKOUT/scan"
