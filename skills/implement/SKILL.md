@@ -1,6 +1,14 @@
 ---
 name: implement
 description: "Implement a piece of work based on a spec or ticket with the flow: Plan -> Execute -> Review -> Verify -> Completion"
+allowed-tools:
+  - Read
+  - Write
+  - TodoWrite
+  - TaskCreate
+  - TaskGet
+  - TaskUpdate
+  - TaskList
 ---
 
 Before beginning, `/update-working-copy`
