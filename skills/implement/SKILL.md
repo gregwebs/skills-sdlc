@@ -3,6 +3,8 @@ name: implement
 description: "Implement a piece of work based on a spec or ticket with the flow: Plan -> Execute -> Review -> Verify -> Completion"
 ---
 
+Before beginning, `/update-working-copy`
+
 # Agent Delegation
 
 Your job is solely to orchestrate subagents through implementation according to this skill.
