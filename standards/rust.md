@@ -1,3 +1,5 @@
+# Rust
+
 ## Error handling
 
 Panics should be avoided if possible in favor of returning an error.
