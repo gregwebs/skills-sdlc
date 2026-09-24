@@ -57,6 +57,8 @@ If there are CI failures, investigate them and change the PR.
 If the CI failures are not related to your work, suggest filing an issue or otherwise fixing them separately.
 If they are related to your work, and the changes needed are not minor, fix them using the same workflow you used to write the code.
 
+If CI is in progress and the branch has multiple commits, check if there are incomplete runs on older commits that can be canceled. Ask the user if you can cancel them unless you are already pre-authorized to cancel.
+
 ## Cleaning up history
 
 Before pushing the PR, squash merge commits into a useful history.
