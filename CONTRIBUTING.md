@@ -64,19 +64,7 @@ no network) covering the checker's exit codes, including the "no GitHub Actions
 checks apply to this commit" classification. `./test/check-verus-cheats.sh`
 is fixture-driven too, covering each proof shortcut the checker must reject.
 
-For local validation, run:
-
-```sh
-./test/install-agents.sh
-./test/install-standards.sh
-./test/install-skills.sh
-./test/repository-interface.sh
-./test/check-ci-runs.sh
-./test/check-verus-cheats.sh
-./scripts/check-skill-inlines.sh
-./scripts/shellcheck.sh
-git diff --check
-```
+For local validation, run: `./test/all.sh`
 
 When updating the submodule, review upstream behavior and provenance scopes
 before committing the new gitlink. Never edit vendored files in place or track
