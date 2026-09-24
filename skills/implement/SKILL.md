@@ -11,6 +11,8 @@ allowed-tools:
   - TaskList
 ---
 
+This skill uses other skills. If a skill is missing, stop and ask the user to install it.
+
 Before beginning, `/update-working-copy`
 
 # Agent Delegation
@@ -35,9 +37,7 @@ action and the artifact or source paths it needs. Do not paste the conversation
 transcript into the delegation prompt.
 
 Always run subagents without blocking- this makes it possible to watch for stuck subagents.
-Set a timer to check on subagents to make sure they are not stuck.
-
-This skill uses other skills. If a skill is missing, stop and ask the user to install it.
+Keep checking on subagents to make sure they are not stuck. 15 minute timers is suggested.
 
 # Flow
 
