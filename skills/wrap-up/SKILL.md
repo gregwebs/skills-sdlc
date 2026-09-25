@@ -7,7 +7,8 @@ Ensure you are on a branch at the apropriate location.
 This is usually the tip of main.
 Do a fetch of the origin repo to see if there have been updates.
 
-Commit your work. Reference relevant issues/tickets in your commit message.
+Commit your work.
+Squash your commits down to a concise history useful for future viewers of history (usually just 1 commit).
 Use the `/document-changes` skill to help record your changes in commit messages and pull requests.
 
 Do the following if your instructions authorize/direct it and the capability is available.
