@@ -15,17 +15,13 @@ This skill uses other skills. If a skill is missing, stop and ask the user to in
 
 Before beginning, `/update-working-copy`
 
+Any modifications to the workflow must be approved by the user.
+
 # Agent Delegation
 
 Your job is solely to orchestrate subagents through implementation according to this skill.
 Do not perform the planning or implementation inline or develop your own detailed understanding of either.
 At most you will do checks/verifications between handoffs.
-Any modifications to the workflow must be approved by the user.
-
-You will rely on sub-agents using 2 different agents:
-The `planner` agent is smarter and more costly and produces the design.
-The `implementer` agent implements the plan and is designed to lower costs.
-The sub-agents can ask you to interact with the user if needed.
 
 Artifacts are passed between sub-agents so they start with a summary of all useful information from other sub-agents: this minimizes re-exploration. Create a task-scoped temporary directory outside the repository. Do not commit its contents. Pass absolute artifact paths between agents.
 Agents should edit artifacts incrementally- that way if an agent's session ends prematurely more information is persisted.
@@ -36,13 +32,12 @@ empty-context option on other platforms. Give the delegate only its requested
 action and the artifact or source paths it needs. Do not paste the conversation
 transcript into the delegation prompt.
 
-Always run subagents without blocking- this makes it possible to watch for stuck subagents.
-Keep checking on subagents to make sure they are not stuck and to check on their token usage.
-A 15 minute timer is suggested.
+Always run subagents without blocking- this makes it possible to monitor them.
+Check on subagents every 15 minutes to see if they are stuck and to see their token usage.
 
-Subagents should compact after 200k tokens regardless of its total limit.
-Compaction is accomplished by writing out information and restarting the agent.
-Tell the agent to come to a stopping point and checkpoint information in the standard artifact files and to write out any additional files that will be helpful to re-read on restart. Give it instructions to read these files on restart and continue its work.
+A subagent should compact after 200k tokens regardless of its total limit.
+Compaction is accomplished by restarting the agent.
+Tell the agent to come to a stopping point and checkpoint information in the standard artifact files and to write out any additional files that will be helpful to re-read on restart. Restart the agent with instructions to read these files and continue its work.
 
 # Flow
 
