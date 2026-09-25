@@ -16,6 +16,8 @@ Do the following if your instructions authorize/direct it and the capability is 
 * Watch for CI success
 
 For a multi-commit Pull Request, generate a combined commit message that can be used in a squash merge.
+When fixing CI failures, if the PR has not yet been reviewed, continue to squash commits together and force push the branch.
+If the PR has been reviewed, generate a single squash commit message to be used when the PR is merged.
 
 Ask the user whether to create tickets/issues for:
 * Out of scope defects seen during implementation
