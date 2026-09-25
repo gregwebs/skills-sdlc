@@ -11,9 +11,9 @@ Always handle errors. Logging errors is not handling them.
 
 ## Newtype pattern
 
-Parse, don't validate, and help ensure that with a simple new type.
+Parse, don't validate - ensure that with a simple new type.
 
-Also consider creating a new type to encapsulate trait behavior.
+Consider creating a new type to encapsulate trait behavior.
 
 ## Linting
 

@@ -2,7 +2,7 @@
 
 ## Documentation
 
-Comments state design constraints, invariants, and **why**. Not **what** the code does. If you feel a comment is needed to restate what the next line does, that almost always means the code should be refactored to make what it is doing easier to understand. For example extract a function with a descriptive name.
+Comments state design constraints, invariants, and **why**. Not **what** the code does. If you feel a comment is needed to restate what the next line does, that means the code should be refactored to make what it is doing easier to understand. For example extract a function with a descriptive name.
 
 ## Correctness
 
@@ -56,3 +56,8 @@ API logs should have a parameter to correlate logs to a particular request and a
 We should be able to understand (INFO: high level) and debug (DEBUG: low level) our program by looking at the logs.
 Use log sections- metadata indicating what part of the codebase is being exercised.
 Programs should be able to set the log level (to DEBUG) only for particular log sections via environment variables or CLI.
+
+### Avoid embedding code
+
+Keep code it in its native file format where it can be independently ran and tested and call it from there.
+A common anti-pattern is embedding multi-line bash scripts into Makefiles or Dockerfiles.
