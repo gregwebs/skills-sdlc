@@ -1,6 +1,6 @@
 ---
 name: wrap-up
-description: "After implementing, commit and push up work for final review"
+description: "After implementing, commit and finish your work"
 ---
 
 Ensure you are on a branch at the apropriate location.

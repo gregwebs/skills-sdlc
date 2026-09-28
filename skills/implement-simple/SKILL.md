@@ -10,6 +10,4 @@ Implement the work described by the user in the spec or tickets.
 
 Use `/verify` to verify code as it is written.
 
-Once done, use `/code-review-with-followup` to review the work.
-
-Use `/wrap-up` to get the work merged.
+Once done, use `/code-review-and-wrapup` to reviwe and complete your work.
