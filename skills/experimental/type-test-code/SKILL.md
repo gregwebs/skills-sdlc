@@ -15,6 +15,9 @@ The task is complete when both
 ## Types
 
 Make all type changes at testing seams.
+If you have already been given a plan that specifies these changes, go ahead and use it.
+If instead you need to determine the changes to make, use the `planner` sub-agent to implement the types.
+
 This includes either interfaces or function/method stubs.
 You may need to write stub code inside a function to satisfy type checking.
 In this case use either a standard for "unimplemented" or a TODO comment so the incompletion is obvious.
