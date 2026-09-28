@@ -30,15 +30,19 @@ Write the tests **without looking at the implementation, just the types**.
 
 Use `/verify` to guide the writing of tests.
 
-Maintain a persistent testing sub-agent to continue to run the tests until this coding phase is complete.
+If tests are to be written in the same file as the code, see if you can first write tests in a separate file and then later move them into the code file after the code implementation is complete.
+
+Maintain a persistent testing sub-agent to continue to run the tests until they all pass.
 When notified that an implementation section has landed, run the relevant tests.
 When there is a test failure due to an implementation issue, notify the `coder`.
 
 ## Coder
 
-Write the implementation for the types **without looking at the tests**.
+Spawn a separate `coder` sub-agent for writing the code.
+If there is no `coder` sub-agent role defined than use the `implementer` sub-agent role.
+The sub-agent should be given an `/implementation-plan` for the changes.
 
-If the `implementer` role exists and you are not using the same model, spawn an `implementer` sub-agent for this process.
+Write the implementation for the types **without looking at the tests**.
 
 When a section of code writing is completed, notify the `tester` sub-agent.
 When you are notified about a test failure, you can then look at the test and run it yourself.
