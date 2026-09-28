@@ -82,7 +82,6 @@ Include a Review notes section in the plan. Put the text "no independent review"
 Perform a self-review according to the Review criteria.
 
 If the change is trivial, no independent review is needed. Put the text "trivial change: independent review not needed" in the review section.
-Otherwise, have an independent subagent perform an adversarial review of the plan.
 
 ## Review criteria
 

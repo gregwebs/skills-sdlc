@@ -49,7 +49,9 @@ An implementation plan needs a spec, that will be `task-brief.md` with contents:
 * Otherwise, provide a summary of implementation needs based on the conversation.
 The `planner` output should be persisted as `implementation-plan.md`.
 
-The `/implementation-plan` skill calls for a separate sub-agent review- ensure that it happens- you may need to spawn the sub-agent review. The exception is if the plan review notes state that this is a trivial change.
+Have an independent subagent perform an adversarial review of the plan.
+The exception is if the plan review notes state that this is a trivial change.
+Use a `plan-reviewer` subagent if available, otherwise use a `reviewer`.
 
 ## Phase 2 - Plan execution
 
