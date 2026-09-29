@@ -19,25 +19,7 @@ Any modifications to the workflow must be approved by the user.
 
 # Agent Delegation
 
-Your job is solely to orchestrate subagents through implementation according to this skill.
-Do not perform the planning or implementation inline or develop your own detailed understanding of either.
-At most you will do checks/verifications between handoffs.
-
-Artifacts are passed between sub-agents so they start with a summary of all useful information from other sub-agents: this minimizes re-exploration. Create a task-scoped temporary directory outside the repository. Do not commit its contents. Pass absolute artifact paths between agents.
-Agents should edit artifacts incrementally- that way if an agent's session ends prematurely more information is persisted.
-
-Start every planner, reviewer, and implementer delegation without inherited
-conversation history. In Codex use `fork_turns="none"`; use the equivalent
-empty-context option on other platforms. Give the delegate only its requested
-action and the artifact or source paths it needs. Do not paste the conversation
-transcript into the delegation prompt.
-
-Always run subagents without blocking- this makes it possible to monitor them.
-Check on subagents every 15 minutes to see if they are stuck and to see their token usage.
-
-A subagent should compact after 200k tokens regardless of its total limit.
-Compaction is accomplished by restarting the agent.
-Tell the agent to come to a stopping point and checkpoint information in the standard artifact files and to write out any additional files that will be helpful to re-read on restart. Restart the agent with instructions to read these files and continue its work.
+Use the /orchestration skill to manage subagents.
 
 # Flow
 
@@ -55,19 +37,16 @@ Use a `plan-reviewer` subagent if available, otherwise use a `reviewer`.
 
 ## Phase 2 - Plan execution
 
-Delegate to a fresh `implementer` sub-agent with only
+Delegate to a fresh `coder` (falling back to `implementer`) sub-agent, with only
 * `task-brief.md`
 * `implementation-plan.md`
 
-If the required implementer delegation is unavailable, stop after
-planning and ask the user for an implementer/model handoff (the /handoff skill may be available). Do not execute the plan inline on the planning model.
+If the `coder` stops due to a plan issue, have the planner sub-agent review the plan issue and revise the plan accordingly.
+Then restart **Phase 2 - Plan execution** with the revised implementation plan. The first step will be to make any needed updates to existing changes to satisfy the newly revised plan.
 
-If the implementer stops due to a plan issue, have the planner sub-agent review the plan issue and revise the plan accordingly.
-Then restart **Phase 2 - Plan execution** with the revised implementation plan. The first step will be to review any existing implementation changes and make sure it satisfies with the newly revised plan. If a change does not, delete or overwrite the change.
+### coder sub-agent prompt
 
-### implementer sub-agent prompt
-
-Execute an already-approved implementation plan. Do NOT redesign the plan.
+Implement an already-approved implementation plan. Do NOT redesign the plan.
 
 #### Inputs (read both fully, in order)
 - `task-brief.md`
@@ -77,10 +56,10 @@ These are self-contained. The plan restates all needed issue detail.
 #### How to work
 
 - Follow the plan's step-by-step sequence.
-- Stay strictly within this ticket's scope. For out of scope bugs, suggest creating a ticket.
+- Stay strictly within this ticket's scope. For out of scope bugs or enhancements, suggest creating a ticket.
 - Use `/verify` to verify code as it is written.
 - Read repo documentation (INSERT SPECIFIC DOCS) for conventions before editing code.
-- Perform a `/code-review` of your own code changes but without any sub-agents. Your inputs are the spec and your working changes are the fixed point.
+- On completion, perform a `/code-review` of your own code changes but without any sub-agents. Your inputs are the spec and your working changes are the fixed point.
 
 
 #### STOP immediately and report if:
