@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: macos-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install test dependencies
+        run: brew install bash shellcheck ripgrep
+
+      - name: Run tests
+        run: |
+          export PATH="$(brew --prefix)/bin:$PATH"
+          ./test/all.sh
