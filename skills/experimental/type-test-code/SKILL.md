@@ -4,15 +4,17 @@ description: "Write types first, then test and code independently"
 ---
 
 When writing code
-1. first design and implement the types.
-2. write tests with an indepdent subagent: done by the `tester`
-3. write code independent of the tests: done by the `coder`
+1. first design and implement the types: done by the `planner`.
+2. write tests with an indepdent subagent: done by the `tester`.
+3. write code independent of the tests: done by the `coder`.
 
 The task is complete when both
 * the `coder` has completed the implementation plan (written all the code)
 * the `tester` is satisfied with the level of testing.
 
-## Types
+Use the `/orchestration` skill to manage sub-agents.
+
+## Planner
 
 Make all type changes at testing seams.
 If you have already been given a plan that specifies these changes, go ahead and use it.

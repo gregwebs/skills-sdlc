@@ -93,17 +93,17 @@ Update `implementation-result.md` according to changes made from the code review
 
 ## Phase 3 - Verification
 
-Delegate to a fresh `implementer` sub-agent to perform required verifications. They should have access to
+Delegate to a `verifier` (falling back to `implementer`) sub-agent to perform required verifications. They should have access to
 * `task-brief.md`
 * `implementation-plan.md`
 * `implementation-result.md`
 * `verifications.md`
 
-Review the verification report produced by the implementer sub-agent.
+Review the verification report produced by the verifier.
 Push back on any claims that verifications tests cannot be run in the environment- investigate those claims yourself.
 For verifications that were ran, be skeptical of claims of the strength of verification (what was verified).
 
-### implementer sub-agent
+### verifier sub-agent
 
 Verify manually that the changes work as expected in an e2e end user setting.
 Test edge cases and failure modes in addition to the happy path.

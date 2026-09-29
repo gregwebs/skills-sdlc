@@ -6,8 +6,6 @@ disable-model-invocation: true
 
 Before beginning, `/update-working-copy`
 
-Use the `/orchestration` skill to manage sub-agents.
-
 Implement the work described by the user in the spec or tickets using `/type-test-code`.
 
-Once done, use `/code-review-and-wrapup` to reviwe and complete your work.
+Once done, use `/code-review-and-wrapup` to review and complete your work.
