@@ -24,5 +24,5 @@ fi
 
 repo=$(gh_app_default_repo)
 run_id="$1"
-gh_app_api_post "repos/${repo}/actions/runs/${run_id}/force-cancel" '{}'
+gh_app_api_post "repos/${repo}/actions/runs/${run_id}/force-cancel" '{}' >/dev/null
 echo "Requested force-cancellation of workflow run ${run_id}." >&2
