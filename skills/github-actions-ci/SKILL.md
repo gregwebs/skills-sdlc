@@ -1,6 +1,6 @@
 ---
 name: github-actions-ci
-description: Monitor, wait for, and diagnose a repository's GitHub Actions checks with the skill's bundled helper. Use after pushing or opening/updating a PR, when asked to watch CI or verify a named job such as Playwright, or when a GitHub Actions check fails.
+description: Monitor, wait for, diagnose, rerun, and cancel a repository's GitHub Actions checks and runs. Use the bundled helper for check status and the GitHub App helper for rerun and cancel. Use after pushing or opening/updating a PR, when asked to watch CI or verify a named job such as Playwright, or when a GitHub Actions check fails.
 allowed-tools: Bash(${CLAUDE_SKILL_DIR}/scripts/check-ci-runs.sh *)
 ---
 
@@ -46,6 +46,24 @@ Use the workflow run ID from the failed job URL. This reruns only failed jobs;
 it does not create a new workflow run or rerun successful jobs. Monitor the
 replacement checks with
 `${CLAUDE_SKILL_DIR}/scripts/check-ci-runs.sh --wait COMMIT`.
+
+## Cancel runs
+
+Cancel a workflow run by its run ID with the GitHub App helper:
+
+```sh
+./scripts/gh-app.sh actions-cancel RUN_ID
+```
+
+Use `actions-force-cancel` when a normal cancel is not taking effect:
+
+```sh
+./scripts/gh-app.sh actions-force-cancel RUN_ID
+```
+
+Both share the `./scripts/gh-app.sh` stable approval prefix as rerun. Get the
+run ID from the failed job URL. Cancellation is destructive: only cancel a run
+when the user has asked, and confirm the run ID first.
 
 GitHub requires network access. In a restricted Codex sandbox, request network
 escalation on the first call using that narrow prefix. Do not probe with raw

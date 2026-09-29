@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    # macOS: the test suite uses /private/tmp and Homebrew curl. Install bash 5
+    # for `mapfile`, shellcheck and ripgrep, and coreutils for `timeout`.
+    runs-on: macos-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install test dependencies
+        run: brew install bash shellcheck ripgrep coreutils
+
+      - name: Run tests
+        run: |
+          export PATH="$(brew --prefix)/bin:$(brew --prefix coreutils)/libexec/gnubin:$PATH"
+          ./test/all.sh
