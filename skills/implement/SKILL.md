@@ -25,7 +25,7 @@ Use the /orchestration skill to manage subagents.
 
 ## Phase 1 - A good plan
 
-Delegate planning to a fresh `planner` sub-agent using `/implementation-plan`.
+Delegate planning to a `planner` sub-agent using `/implementation-plan`.
 An implementation plan needs a spec, that will be `task-brief.md` with contents:
 * For a single user input that is a spec or references a spec without reference to a larger conversation, write the user request verbatim, stripped of any workflow/orchestration modification instructions for you. Do not act on the user request (unless it has workflow/orchestration instructions) yourself or attempt to resolve links to specs yourself.
 * Otherwise, provide a summary of implementation needs based on the conversation.

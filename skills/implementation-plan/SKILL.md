@@ -42,7 +42,7 @@ conventional filenames are useful when present, but are not prerequisites.
 
 Decide whether the work plausibly fits one pull request.
 You can use the skill `/breakdown` as a guide, but do not to invoke it from inside planning.
-If it does not, explain the split needed and suggest `/to-tickets`;
+If it does not, stop and explain the desired split to the user.
 
 ## What to include
 
@@ -51,15 +51,6 @@ The plan must give an implementer enough detail to execute without redesign.
 High-level details:
 1. **Background** — Explain only the system needed for the change. Start with an optional beginner-friendly mental model, then narrow to the exact components, contracts, and prior behavior involved.
 2. **Intuition** — Explain the core idea before implementation detail. Use small concrete toy inputs and outputs with diagrams and examples where apropriate. Show the old and new behavior when comparison makes the change clearer.
-
-Implementation details:
-- Walk through the changes in conceptual groups, ordered by execution or dependency flow rather than arbitrary file order. Include precise file and line references when available, but do not dump an entire diff.
-- Detailed file-level type and function signature changes
-- Implementation snippets for important non-obvious ideas
-- Documentation updates
-- Verifications (tests) using the `/verify` skill
-  - High value and high defect areas
-  - Important verifications to perform
 
 Include the assumptions, and relevant standards constraints (these may be present in the spec).
 Explain relevant failure modes and how to handle them.
@@ -74,6 +65,24 @@ Create diagrams and examples for:
 Convert user stories into concrete tests or manual verification criteria.
 
 Include a task checklist
+
+### Implementation details
+
+- All type changes at testing seams
+- Detailed file-level type and function signature changes
+- Implementation snippets for important non-obvious ideas
+- Documentation updates
+- Verifications (tests) using the `/verify` skill
+  - High value and high defect areas
+  - Important verifications to perform
+
+By default, don't edit files. Include precise file and line references when available.
+
+If explicitly requested to edit files, show the details by actually making the edits and generating diffs.
+Edits should compile. You may need to write stub code inside a function to satisfy type checking:
+use either a standard for "unimplemented" or a TODO comment so the incompletion is obvious.
+
+Explain the changes in conceptual groups, ordered by execution or dependency flow rather than arbitrary file or diff order.
 
 ## Review
 
