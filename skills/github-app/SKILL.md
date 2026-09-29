@@ -1,6 +1,6 @@
 ---
 name: github-app
-description: Read and update GitHub issues, push branches, and create or update pull requests, issues, and comments through App-authenticated scripts. Use for GitHub reads or writes, including "open a PR", "send a pull request", "file/read/update an issue", "comment on the PR/issue", "mark an issue as blocked by / blocking another", or an App-authenticated push.
+description: Read, update, and assign GitHub issues, push branches (including force push), and create or update pull requests, issues, and comments through App-authenticated scripts. Use for GitHub reads or writes, including "open a PR", "send a pull request", "file/read/update/assign an issue", "comment on the PR/issue", "mark an issue as blocked by / blocking another", or an App-authenticated push (with --force when asked).
 user-invocable: true
 allowed-tools:
   - Read
@@ -47,10 +47,11 @@ $HOME/.agents/skills/github-app/scripts/*.sh
 
 | Action | Dispatcher command | Required args |
 |---|---|---|
-| Push a branch | `./scripts/gh-app.sh push` | none |
+| Push a branch | `./scripts/gh-app.sh push` | none (`--force` / `--force-with-lease` optional) |
 | Open a PR | `./scripts/gh-app.sh pr-create` | `--base BASE --head HEAD --title TITLE` |
 | Read an issue | `./scripts/gh-app.sh issue-get` | `--issue NUMBER` |
 | File an issue | `./scripts/gh-app.sh issue-create` | `--title TITLE` |
+| Assign an issue | `./scripts/gh-app.sh issue-assign` | `--issue NUMBER (--assignee USER)...` or `--clear-assignees` |
 | Link sub-issue | `./scripts/gh-app.sh issue-sub-add` | `--parent NUMBER --child NUMBER` |
 | Link blocked-by | `./scripts/gh-app.sh issue-block-add` | `--blocked NUMBER --blocker NUMBER` |
 | Remove blocked-by | `./scripts/gh-app.sh issue-block-remove` | `--blocked NUMBER --blocker NUMBER` |
@@ -150,6 +151,20 @@ Reasons:
 3. Follow repository instructions or conventions for PR Body contents.
 4. Write the body file, run the script, relay the printed PR URL.
 
+## Force pushing
+
+`push` accepts `--force` (alias `-f`) or `--force-with-lease`:
+
+```
+./scripts/gh-app.sh push --force
+./scripts/gh-app.sh push --force-with-lease
+```
+
+Force push rewrites remote history and is destructive — run it only when the
+user has explicitly asked, and confirm the branch first. Prefer
+`--force-with-lease`, which refuses if the remote branch has moved since your
+last fetch. Both forms still refuse to push `main`.
+
 ## Filing an issue
 
 ```
@@ -157,6 +172,19 @@ Reasons:
   --body-file "$TMPDIR/issue-body.md" --label bug --label "needs triage"
 ```
 `--label` repeats per label. Relay the printed issue URL.
+
+## Assigning an issue
+
+```
+./scripts/gh-app.sh issue-assign --issue 42 --assignee alice --assignee bob
+./scripts/gh-app.sh issue-assign --issue 42 --clear-assignees
+```
+
+`--assignee` repeats and replaces the issue's full assignee set, so combine
+multiple users in one call. `--clear-assignees` removes every assignee and
+cannot be combined with `--assignee`. Assignees must be users with access to
+the repo (this endpoint does not assign teams). GitHub treats PRs as issues
+for this endpoint, so the same command works on a PR by number.
 
 ## Commenting on an issue or PR
 
