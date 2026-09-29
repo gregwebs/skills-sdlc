@@ -5,7 +5,7 @@ metadata:
   inlined-from:
     - source: ../../vendor/mattpocock/skills/engineering/to-tickets/SKILL.md
       source-scope: "## Process"
-      source-scope-sha256: "ae2ac74402ccc657dbe771d0dc2489f6f8a9f48c4cfa2b3bdcde9a529253c9d9"
+      source-scope-sha256: "e43ed928773c7ce6682da61de29c57cfec40ce477c185d6c0463a921e501a1fd"
       components:
         - source-section: "### 1. Gather context"
           local-section: "### 1. Gather context"

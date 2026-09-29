@@ -213,7 +213,7 @@ for tracked_path in \
   assert_tracked "$tracked_path"
 done
 
-assert_contains ./skills/implement/SKILL.md 'fork_turns="none"'
+assert_contains ./skills/implement/SKILL.md 'Use the /orchestration skill to manage subagents.'
 assert_contains ./skills/implement/SKILL.md 'task-brief.md'
 assert_contains ./skills/implement/SKILL.md 'implementation-plan.md'
 assert_contains ./skills/implement/SKILL.md 'implementation-result.md'

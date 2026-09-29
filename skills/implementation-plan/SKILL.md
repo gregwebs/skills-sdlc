@@ -5,7 +5,7 @@ metadata:
   inlined-from:
     - source: ../../vendor/mattpocock/skills/engineering/code-review/SKILL.md
       source-scope: "## Process"
-      source-scope-sha256: "d59f232ddadb9a3b1b73a33308bd1735a597a4d9ebb3b3a7d6a0b31e59d80402"
+      source-scope-sha256: "93a4cc1ed1ed855ba72d84034ca8f4a72e819cec7d595694b84bb6d53970327c"
       components:
         - source-section: "### 2. Identify the spec source"
           local-section: "### Identify the spec source"

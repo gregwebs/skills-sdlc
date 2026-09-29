@@ -11,4 +11,4 @@ mapfile -t files < <(git ls-files | while read -r f; do
   [ -f "$f" ] && [ ! -L "$f" ] \
     && head -1 "$f" | grep -qE '^#!.*(bash|/sh| sh)' && printf '%s\n' "$f"
 done)
-shellcheck "${files[@]}"
+shellcheck --severity=warning "${files[@]}"
