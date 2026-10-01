@@ -170,14 +170,6 @@ The result is gated by `verus --no-cheating` and by a bundled diff checker that 
 This skill is specific to Verus projects rather than general to software delivery, so it lives under `skills/rust/` and `./scripts/install-skills.sh` skips it.
 Link it into the agent skill directory when working in a Verus project.
 
-## Security
-
-We want to let the agent do safe operations without prompting us- prompt fatigue creates security risks.
-
-The agent should operate as a separate OS user in an isolated sandbox (VM/container) with network access restricted.
-
-Otherwise you will need to use the harness (claude code) sandboxing to carefully allow specific commands. Have the agent write code (scripts) for common workflows and commit those.
-
 ### Github
 
 If you are going to give the agent autonomy to interact with Github, it is better that it doesn't actually appear to be you and that permissions are restricted as much as possible.
