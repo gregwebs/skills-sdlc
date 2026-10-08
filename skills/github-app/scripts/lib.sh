@@ -103,20 +103,52 @@ gh_app_api_delete() {
 # on a >=400 response.
 gh_app_api_get() {
   local path="$1" token response status body
-  token=$(gh_app_token)
-  response=$(gh_app_curl -s -w '\n%{http_code}' -X GET \
+  token=$(gh_app_token) || return $?
+  response=$(gh_app_curl -sS -w '\n%{http_code}' -X GET \
     -H "Authorization: token $token" \
     -H "Accept: application/vnd.github+json" \
     -H "X-GitHub-Api-Version: ${GH_APP_API_VERSION}" \
-    "https://api.github.com/${path}")
+    "https://api.github.com/${path}") || return $?
   status=$(printf '%s' "$response" | tail -n1)
   body=$(printf '%s' "$response" | sed '$d')
-  if [ "$status" -ge 400 ]; then
+  if ! [[ "$status" =~ ^2[0-9][0-9]$ ]]; then
     echo "GitHub API error ($status):" >&2
     printf '%s\n' "$body" | jq . >&2 2>/dev/null || printf '%s\n' "$body" >&2
     return 1
   fi
   printf '%s' "$body"
+}
+
+# GraphQL mutations must not be retried automatically: a transport failure
+# can occur after GitHub has already applied the mutation.
+gh_app_api_graphql() {
+  local query="$1" variables="$2" payload token response status body
+  payload=$(jq -n --arg query "$query" --argjson variables "$variables" \
+    '{query: $query, variables: $variables}') || return $?
+  token=$(gh_app_token) || return $?
+  response=$(gh_app_curl -sS -w '\n%{http_code}' -X POST \
+    -H "Authorization: token $token" \
+    -H "Accept: application/vnd.github+json" \
+    -H "Content-Type: application/json" \
+    "https://api.github.com/graphql" \
+    -d "$payload") || return $?
+  status=$(printf '%s' "$response" | tail -n1)
+  body=$(printf '%s' "$response" | sed '$d')
+  if ! [[ "$status" =~ ^2[0-9][0-9]$ ]]; then
+    echo "GitHub GraphQL HTTP error ($status):" >&2
+    printf '%s\n' "$body" >&2
+    return 1
+  fi
+  if ! printf '%s' "$body" | jq -es 'length == 1 and (.[0] | type == "object")' >/dev/null; then
+    echo "GitHub GraphQL: malformed JSON response" >&2
+    return 1
+  fi
+  if ! printf '%s' "$body" | jq -e '.errors == null or .errors == []' >/dev/null; then
+    echo "GitHub GraphQL errors:" >&2
+    printf '%s\n' "$body" >&2
+    return 1
+  fi
+  printf '%s\n' "$body"
 }
 
 # Download a raw API response, following GitHub's redirect to the short-lived

@@ -244,6 +244,7 @@ for script in \
   gh-app-issue-comment.sh \
   gh-app-issue-create.sh \
   gh-app-issue-get.sh \
+  gh-app-issue-transfer.sh \
   gh-app-issue-sub-add.sh \
   gh-app-issue-block-add.sh \
   gh-app-issue-block-remove.sh \
@@ -290,12 +291,16 @@ done
 "$INLINE_CHECKER"
 
 assert_help "$GITHUB_DISPATCHER"
+transfer_help=$("$GITHUB_DISPATCHER" issue-transfer --help)
+[ "$transfer_help" = 'usage: ./scripts/gh-app.sh issue-transfer --issue NUMBER --to-repo OWNER/REPO [--repo OWNER/REPO]' ] \
+  || fail "unexpected issue-transfer help: $transfer_help"
 assert_help "$CI_CHECKER"
 for command_name in \
   push \
   pr-create \
   pr-update \
   issue-get \
+  issue-transfer \
   issue-create \
   issue-update \
   issue-comment \
