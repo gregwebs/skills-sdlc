@@ -15,6 +15,7 @@ commands:
   pr-update       Update a pull request
   issue-get       Read an issue
   issue-create    Create an issue
+  issue-transfer  Transfer an issue to another repository
   issue-update    Update an issue
   issue-assign    Assign users to an issue
   issue-comment   Comment on an issue or pull request
@@ -35,7 +36,7 @@ EOF
 command_name="${1:-}"
 case "$command_name" in
   --help|-h|"") usage; exit 0 ;;
-  push|pr-create|pr-update|issue-get|issue-create|issue-update|issue-assign|issue-comment|issue-sub-add|issue-block-add|issue-block-remove|issue-block-list|actions-run-view|actions-job-log|actions-rerun-failed|actions-cancel|actions-force-cancel) ;;
+  push|pr-create|pr-update|issue-get|issue-transfer|issue-create|issue-update|issue-assign|issue-comment|issue-sub-add|issue-block-add|issue-block-remove|issue-block-list|actions-run-view|actions-job-log|actions-rerun-failed|actions-cancel|actions-force-cancel) ;;
   *) echo "unknown command: $command_name" >&2; usage >&2; exit 1 ;;
 esac
 shift

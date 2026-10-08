@@ -1,6 +1,6 @@
 ---
 name: github-app
-description: Read, update, and assign GitHub issues, push branches (including force push), and create or update pull requests, issues, and comments through App-authenticated scripts. Use for GitHub reads or writes, including "open a PR", "send a pull request", "file/read/update/assign an issue", "comment on the PR/issue", "mark an issue as blocked by / blocking another", or an App-authenticated push (with --force when asked).
+description: Read, update, assign, and transfer GitHub issues, push branches (including force push), and create or update pull requests, issues, and comments through App-authenticated scripts. Use for GitHub reads or writes, including "open a PR", "send a pull request", "file/read/update/assign/transfer an issue", "comment on the PR/issue", "mark an issue as blocked by / blocking another", or an App-authenticated push (with --force when asked).
 user-invocable: true
 allowed-tools:
   - Read
@@ -17,10 +17,10 @@ allowed-tools:
 # /github-app — GitHub PR / issue / comment via the App scripts
 
 The stable `./scripts/gh-app.sh` dispatcher delegates to implementation scripts
-bundled with this skill. Those scripts hit the GitHub REST API authenticated as
-a GitHub App installation. They mint their own short-lived (~9 min) token per
-call — nothing to log into. Each script prints
-the resulting `html_url` on success; **always relay that URL back to the user.**
+bundled with this skill. Those scripts use GitHub REST and GraphQL APIs,
+authenticated as a GitHub App installation. They mint their own short-lived
+(~9 min) token per call — nothing to log into. Write commands print the resulting
+URL on success; **always relay that URL back to the user.**
 
 These are **outward-facing actions** (they publish to GitHub and notify people).
 This skill only runs when explicitly requested by the user- this includes explicitly invoking another skill that explicitly invokes this skill.
@@ -50,6 +50,7 @@ $HOME/.agents/skills/github-app/scripts/*.sh
 | Push a branch | `./scripts/gh-app.sh push` | none (`--force` / `--force-with-lease` optional) |
 | Open a PR | `./scripts/gh-app.sh pr-create` | `--base BASE --head HEAD --title TITLE` |
 | Read an issue | `./scripts/gh-app.sh issue-get` | `--issue NUMBER` |
+| Transfer an issue | `./scripts/gh-app.sh issue-transfer` | `--issue NUMBER --to-repo OWNER/REPO` |
 | File an issue | `./scripts/gh-app.sh issue-create` | `--title TITLE` |
 | Assign an issue | `./scripts/gh-app.sh issue-assign` | `--issue NUMBER (--assignee USER)...` or `--clear-assignees` |
 | Link sub-issue | `./scripts/gh-app.sh issue-sub-add` | `--parent NUMBER --child NUMBER` |
@@ -172,6 +173,27 @@ last fetch. Both forms still refuse to push `main`.
   --body-file "$TMPDIR/issue-body.md" --label bug --label "needs triage"
 ```
 `--label` repeats per label. Relay the printed issue URL.
+
+## Transferring an issue
+
+```
+./scripts/gh-app.sh issue-transfer --issue 42 --to-repo OWNER/DESTINATION \
+  --repo OWNER/SOURCE
+```
+
+The source defaults to origin; the destination is mandatory. Only issues (not
+PRs) can move, both repositories must share an owner, and the destination must
+have issues enabled. The installation must cover both repositories with the
+required permissions, including `Issues: write`; GraphQL may require grants
+missing from the current installation. Report permission errors to the user,
+without a workaround.
+
+Success prints the new URL; the issue number and node ID may change. Label and
+milestone preservation depends on matching destination metadata; preflight
+compatibility before transferring. There is no automatic retry or copy-and-close
+fallback. On any mutation failure, including HTTP-200 GraphQL errors or invalid
+responses, the outcome may be unknown. Reconcile the issue's location read-only
+before retrying; GitHub may already have applied the transfer.
 
 ## Assigning an issue
 
