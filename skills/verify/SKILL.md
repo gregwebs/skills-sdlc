@@ -97,7 +97,7 @@ description: "Verify software by intentional testing."
 
 # Advanced Testing Methods
 
-## Property-based tests
+## Property-based tests and proofs
 
 Use when behavior can be expressed as general invariants across many inputs.
 
