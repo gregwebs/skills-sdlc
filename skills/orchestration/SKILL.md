@@ -20,14 +20,17 @@ You may need to do checks/verifications of agent handoffs.
 
 Artifacts should be passed between sub-agents so they start with a summary of all useful information from other sub-agents: this minimizes re-exploration. Create a task-scoped temporary directory outside the repository. Do not commit its contents. Pass absolute artifact paths between agents.
 
-Agents should edit artifacts incrementally- that way if an agent's session ends prematurely more information is persisted.
+Instruct agents to edit artifacts incrementally- that way if an agent's session ends prematurely more information is persisted.
 
 Start every delegation without inherited conversation history using the mpty-context option on the platform.
 Give the sub-agent only its requested action and the artifact or source paths it needs.
 Do not paste the conversation transcript into the delegation prompt.
 
 Always run subagents without blocking- this makes it possible to monitor them.
-Check on subagents every 15 minutes to see if they are stuck and to see their token usage.
+Reconcile every subagent at least every 15 minutes- don't wait for a notification without a deadline.
+Reconcile to see if they are stuck, completed, or running and also to check on their token usage.
+File mtime is the most reliable liveness signal. Ask agents to update an artifact file at least every 15 minutes.
+Investigate for additional liveness signals (mtime of non-artifact files, e2e tests running, etc) before assuming the agent is not running.
 
 A subagent should compact after 200k tokens regardless of its total limit.
 Compaction is accomplished by restarting the agent.
