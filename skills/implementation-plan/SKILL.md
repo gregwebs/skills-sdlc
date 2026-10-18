@@ -55,7 +55,7 @@ High-level details:
 Include the assumptions, and relevant standards constraints (these may be present in the spec).
 Explain relevant failure modes and how to handle them.
 
-Create diagrams and examples for:
+Create diagrams or tables and examples for:
 - important state transitions
 - flow diagrams for requests, data, or control flow;
 - before/after panels for changed behavior;
@@ -83,6 +83,7 @@ Edits should compile. You may need to write stub code inside a function to satis
 use either a standard for "unimplemented" or a TODO comment so the incompletion is obvious.
 
 Explain the changes in conceptual groups, ordered by execution or dependency flow rather than arbitrary file or diff order.
+Where possible, break up the implementation plan into separate phases.
 
 ## Review
 
