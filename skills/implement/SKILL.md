@@ -79,11 +79,8 @@ Provide evidence for all the verifications have been performed along with their 
 
 ## Phase 3 - Review
 
-Delegate `/code-review-with-followup` to an sub-agent. Look for an existing defined agent in this order:
-* `reviewer`
-* `planner`
+Use `/code-review-with-followup` with these files:
 
-Use these files:
 * `task-brief.md`
 * `implementation-plan.md`
 * `implementation-result.md`
