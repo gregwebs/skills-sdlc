@@ -60,6 +60,7 @@ These are self-contained. The plan restates all needed issue detail.
 - Use `/verify` to verify code as it is written.
 - Read repo documentation (INSERT SPECIFIC DOCS) for conventions before editing code.
 - On completion, perform a `/code-review` of your own code changes but without any sub-agents. Your inputs are the spec and your working changes are the fixed point.
+- As you work, append to `implementation-diary.md` a log of what happened during implementation
 
 
 #### STOP immediately and report if:
@@ -71,7 +72,7 @@ These are self-contained. The plan restates all needed issue detail.
 
 #### Output
 
-Persist a final report as `implementation-result.md`.
+Persist a final report as `implementation-result.md` and make `implementation-diary` available.
 
 Separately, extract all verification (from the plan and anything you performed or recommend) into  `verifications.md`.
 Provide evidence for all the verifications have been performed along with their results.
@@ -87,6 +88,7 @@ Use these files:
 * `implementation-plan.md`
 * `implementation-result.md`
 * `verifications.md`
+* `implementation-diary.md`
 
 During the review, add any new requested verifications to `verifications.md`.
 Update `implementation-result.md` according to changes made from the code review.
