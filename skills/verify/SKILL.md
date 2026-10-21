@@ -50,6 +50,11 @@ description: "Verify software by intentional testing."
    * remaining risks or under tested areas
    * Manual verifications or automated tests not ran on the CI must document how they were ran (pointing to other docs is good) and their result.
 
+   Every "not verified" or "not run" line must point to existing documentation or
+   name the exact command you attempted and the exact error you got as
+   > `BLOCKED: <command> -> <error>`
+   Do not claim that the verification cannot be performed: there may be a way to get unblocked.
+
 
 # Test writing Process
 
