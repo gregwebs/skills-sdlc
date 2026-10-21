@@ -1,6 +1,6 @@
 ---
 name: github-actions-ci
-description: Monitor, wait for, diagnose, rerun, and cancel a repository's GitHub Actions checks and runs. Use the bundled helper for check status and the GitHub App helper for rerun and cancel. Use after pushing or opening/updating a PR, when asked to watch CI or verify a named job such as Playwright, or when a GitHub Actions check fails.
+description: Monitor, wait for, diagnose, rerun, and cancel a repository's GitHub Actions checks and runs. Use the bundled helper for check status and the GitHub App wrapper for rerun and cancel. Use after pushing or opening/updating a PR, when asked to watch CI or verify a named job such as Playwright, or when a GitHub Actions check fails.
 allowed-tools: Bash(${CLAUDE_SKILL_DIR}/scripts/check-ci-runs.sh *)
 ---
 
@@ -30,16 +30,17 @@ ${CLAUDE_SKILL_DIR}/scripts/check-ci-runs.sh
 ## Rerun failed jobs
 
 After confirming a failure is transient or unrelated to the change, rerun the
-failed jobs for the workflow run with the GitHub App helper:
+failed jobs for the workflow run with the GitHub App wrapper, which runs `gh` as
+the App:
 
 ```sh
-./scripts/gh-app.sh actions-rerun-failed RUN_ID
+${CLAUDE_SKILL_DIR}/../github-app/scripts/gh-app.sh run rerun RUN_ID --failed
 ```
 
 The stable approval prefix is:
 
 ```text
-./scripts/gh-app.sh
+${CLAUDE_SKILL_DIR}/../github-app/scripts/gh-app.sh
 ```
 
 Use the workflow run ID from the failed job URL. This reruns only failed jobs;
@@ -49,19 +50,19 @@ replacement checks with
 
 ## Cancel runs
 
-Cancel a workflow run by its run ID with the GitHub App helper:
+Cancel a workflow run by its run ID with the GitHub App wrapper:
 
 ```sh
-./scripts/gh-app.sh actions-cancel RUN_ID
+${CLAUDE_SKILL_DIR}/../github-app/scripts/gh-app.sh run cancel RUN_ID
 ```
 
-Use `actions-force-cancel` when a normal cancel is not taking effect:
+Add `--force` when a normal cancel is not taking effect:
 
 ```sh
-./scripts/gh-app.sh actions-force-cancel RUN_ID
+${CLAUDE_SKILL_DIR}/../github-app/scripts/gh-app.sh run cancel RUN_ID --force
 ```
 
-Both share the `./scripts/gh-app.sh` stable approval prefix as rerun. Get the
+Both share the rerun command's stable approval prefix. Get the
 run ID from the failed job URL. Cancellation is destructive: only cancel a run
 when the user has asked, and confirm the run ID first.
 
@@ -105,8 +106,8 @@ state when the repository workflow requires all jobs to pass.
 
 On failure:
 
-1. Open the printed job URL or use the GitHub App read helpers where they cover
-   the needed metadata.
+1. Open the printed job URL, or read the job log with
+   `${CLAUDE_SKILL_DIR}/../github-app/scripts/gh-app.sh run view --job JOB_ID --log`.
 2. Identify the first substantive failing step; ignore teardown noise caused by
    the failure.
 3. Reproduce with the repository's documented local command when the host

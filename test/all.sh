@@ -2,7 +2,8 @@
 set -euo pipefail
 
 ./test/check-ci-runs.sh
-./test/gh-app-issue-transfer.sh
+./test/gh-app.sh
+./test/gh-app-issue-dependency.sh
 ./test/install-agents.sh
 ./test/install-standards.sh
 ./test/install-skills.sh

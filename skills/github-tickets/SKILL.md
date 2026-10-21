@@ -25,7 +25,7 @@ If `/to-tickets` skill does not exist on this machine, stop and tell the user th
 
 This section provides specific details for how to publish to "A real issue tracker"
 
-Create all issues with `./scripts/gh-app.sh issue-create`. Write issue
+Create all issues with `${CLAUDE_SKILL_DIR}/../github-app/scripts/gh-app.sh issue create`. Write issue
 bodies to temp files and pass them with `--body-file`; never pass Markdown with
 `--body`.
 
@@ -50,20 +50,20 @@ If the approved breakdown has two or more tickets:
    - Use the base issue template.
    - Include `## Parent` with a reference to the parent issue number.
 3. After each child issue is created, attempt:
-   `./scripts/gh-app.sh issue-sub-add --parent N --child M`
+   `${CLAUDE_SKILL_DIR}/../github-app/scripts/gh-app-issue-sub-issue.sh add --parent N --child M`
 4. Sub-issue linking is failure-tolerant. If linking fails because of a 403,
    422, rate limit, or similar API issue, record the failure, keep creating the
    remaining children, and report all link outcomes at the end.
 5. Once every child issue exists, record the approved breakdown's blocking
    edges as native dependencies. For each ticket with declared blockers, run:
-   `./scripts/gh-app.sh issue-block-add --blocked M --blocker K`
+   `${CLAUDE_SKILL_DIR}/../github-app/scripts/gh-app-issue-dependency.sh add --blocked M --blocker K`
    (`M` is the blocked child's issue number, `K` is each blocker's). Do this as
    a final pass after all children exist — a blocker's issue number isn't
    necessarily known yet when its dependents are created. Same
    failure-tolerant contract as sub-issue linking: on 403, 422, rate limit, or
    similar, record the failure, keep going, and report all outcomes at the end.
 6. After all children are created, update the parent with
-   `./scripts/gh-app.sh issue-update --issue N --body-file FILE`,
+   `${CLAUDE_SKILL_DIR}/../github-app/scripts/gh-app.sh issue edit N --body-file FILE`,
    re-sending the full body plus an appended `## Implementation tickets`
    section. List every child URL in dependency order, note its blockers in
    prose (e.g. `blocked by #12, #13`) so the graph survives even where a link

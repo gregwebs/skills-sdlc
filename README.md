@@ -176,6 +176,10 @@ If you are going to give the agent autonomy to interact with Github, it is bette
 If you use the Claude Github app, the interaction will appear to be directly from you and you cannot alter the permissions, only the repos that it has access to.
 
 There is a skill /github-app in this repo to help the agent authenticate as Github application rather than as you.
+It runs the `gh` CLI with a GitHub App installation token, so the agent uses `gh`'s own commands.
+Setup is three App credential files in `~/.config/github-app/`; see the skill's Setup reference.
+It needs `gh`, `jq`, `curl`, and OpenSSL.
+[ADR 0001](docs/adr/0001-gh-cli-instead-of-rest-scripts.md) records why it uses `gh` instead of bespoke REST scripts, and [GLOSSARY.md](GLOSSARY.md) defines its terms.
 This will not work on Claude Code for the Web (cloud) because they block Github requests- you would need to use the Claude Github app there to send a PR or teleport it back to your local Claude first.
 
 ### Github Actions CI
