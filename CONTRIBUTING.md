@@ -36,8 +36,14 @@ never refresh a digest merely to silence the checker.
 
 ## Command interface tests
 
-The stable repository entry point for GitHub App work is `./scripts/gh-app.sh`;
-its bundled implementation is internal and must not be invoked directly. The
+GitHub App work goes through the bundled wrapper
+`${CLAUDE_SKILL_DIR}/scripts/gh-app.sh`, which exports an App installation
+token and runs `gh` unchanged. Sibling skills call it as
+`${CLAUDE_SKILL_DIR}/../github-app/scripts/gh-app.sh`, a path that resolves both
+in this repository and in installed skill directories. Issue dependencies and
+sub-issues, which `gh` has no command for, use the bundled
+`gh-app-issue-dependency.sh` and `gh-app-issue-sub-issue.sh`. See
+[ADR 0001](docs/adr/0001-gh-cli-instead-of-rest-scripts.md). The
 GitHub Actions skill exposes its bundled checker directly through
 `${CLAUDE_SKILL_DIR}/scripts/check-ci-runs.sh`, so target repositories do not
 need to provide a wrapper. The Verus skill exposes its cheat checker the same
@@ -48,16 +54,28 @@ skips because it only links top-level skill directories. Smoke-test these
 interfaces with:
 
 ```text
-/github-app        -> ./scripts/gh-app.sh -> bundled dispatcher
+/github-app        -> bundled ${CLAUDE_SKILL_DIR}/scripts/gh-app.sh -> gh
 /github-actions-ci -> bundled ${CLAUDE_SKILL_DIR}/scripts/check-ci-runs.sh
 /verus             -> bundled ${CLAUDE_SKILL_DIR}/scripts/check-verus-cheats.sh
 ```
 
 ```sh
 ./test/repository-interface.sh
+./test/gh-app.sh
+./test/gh-app-issue-dependency.sh
 ./test/check-ci-runs.sh
 ./test/check-verus-cheats.sh
 ```
+
+`./test/gh-app.sh` and `./test/gh-app-issue-dependency.sh` stub `gh` on `PATH`
+and the token mint's HTTP call, so they need no network, `gh`, or App
+credentials. They cover the token cache, argument passthrough, `git push`
+authentication, and the exact `gh api` calls of the dependency and sub-issue
+scripts. `./test/gh-app.sh` also wraps `git` on `PATH` to record the push
+invocation before running real `git`. That is a second seam, beyond the single
+stubbed process boundary the design assumed: the credential helper and token
+are only observable at the push invocation itself, so a successful push alone
+would not prove them.
 
 `./test/check-ci-runs.sh` is a fixture-driven functional test (stubbed GitHub API,
 no network) covering the checker's exit codes, including the "no GitHub Actions

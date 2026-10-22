@@ -13,7 +13,7 @@ PR=Pull Request
 
 Access Github if the capability is available and the user instructs it.
 * skills
-  * /github-app skill: create the PR with `./scripts/gh-app.sh pr-create`
+  * /github-app skill: push with `${CLAUDE_SKILL_DIR}/../github-app/scripts/gh-app.sh git push`, then create the PR with `${CLAUDE_SKILL_DIR}/../github-app/scripts/gh-app.sh pr create`
   * /github-actions-ci: check on CI with its bundled helper
 * Github API or MCP
 * github CLI 

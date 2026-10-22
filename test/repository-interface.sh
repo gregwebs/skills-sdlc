@@ -3,7 +3,10 @@
 set -euo pipefail
 
 REPOSITORY_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-GITHUB_DISPATCHER="$REPOSITORY_ROOT/scripts/gh-app.sh"
+GITHUB_APP_SCRIPTS="$REPOSITORY_ROOT/skills/github-app/scripts"
+GITHUB_WRAPPER="$GITHUB_APP_SCRIPTS/gh-app.sh"
+GITHUB_DEPENDENCY="$GITHUB_APP_SCRIPTS/gh-app-issue-dependency.sh"
+GITHUB_SUB_ISSUE="$GITHUB_APP_SCRIPTS/gh-app-issue-sub-issue.sh"
 CI_CHECKER="$REPOSITORY_ROOT/./skills/github-actions-ci/scripts/check-ci-runs.sh"
 INLINE_CHECKER="$REPOSITORY_ROOT/scripts/check-skill-inlines.sh"
 
@@ -48,8 +51,8 @@ assert_help() {
     fail "expected --help to succeed: $*"
   fi
   case "$help_output" in
-    *"./skills/"*|*"gh-app-"*".sh"*)
-      fail "help exposed an internal implementation path: $help_output"
+    *"/skills/"*)
+      fail "help exposed an implementation path: $help_output"
       ;;
   esac
 }
@@ -202,10 +205,19 @@ run_inline_fixtures
 assert_json '.model' 'opusplan'
 assert_json '.permissions.defaultMode' 'plan'
 
-assert_executable "$GITHUB_DISPATCHER"
+assert_executable "$GITHUB_WRAPPER"
+assert_executable "$GITHUB_DEPENDENCY"
+assert_executable "$GITHUB_SUB_ISSUE"
 assert_executable "$CI_CHECKER"
 assert_absent "$REPOSITORY_ROOT/scripts/check-ci-runs.sh"
-assert_readable "$REPOSITORY_ROOT/./skills/github-app/scripts/gh-app-token.sh"
+assert_absent "$REPOSITORY_ROOT/scripts/gh-app.sh"
+assert_readable "$GITHUB_APP_SCRIPTS/gh-app-token.sh"
+# The four scripts above are the whole GitHub App surface; the REST client is gone.
+github_app_scripts=$(ls "$GITHUB_APP_SCRIPTS" | LC_ALL=C sort)
+expected_github_app_scripts=$(printf '%s\n' gh-app.sh gh-app-token.sh \
+  gh-app-issue-dependency.sh gh-app-issue-sub-issue.sh | LC_ALL=C sort)
+[ "$github_app_scripts" = "$expected_github_app_scripts" ] \
+  || fail "unexpected GitHub App scripts: $github_app_scripts"
 
 for tracked_path in \
   ./skills/implementation-plan/SKILL.md \
@@ -239,17 +251,9 @@ if rg -q '\./skills/|docs/change/' "$REPOSITORY_ROOT/skills/github-app/scripts";
   fail 'GitHub App bundled scripts contain a repository-local documentation reference'
 fi
 for script in \
-  gh-app-issue-update.sh \
-  gh-app-pr-update.sh \
-  gh-app-issue-comment.sh \
-  gh-app-issue-create.sh \
-  gh-app-issue-get.sh \
-  gh-app-issue-transfer.sh \
-  gh-app-issue-sub-add.sh \
-  gh-app-issue-block-add.sh \
-  gh-app-issue-block-remove.sh \
-  gh-app-issue-block-list.sh \
-  gh-app-pr-create.sh; do
+  gh-app.sh \
+  gh-app-issue-dependency.sh \
+  gh-app-issue-sub-issue.sh; do
   assert_contains "./skills/github-app/scripts/$script" \
     'Requires a GitHub App set up per the Setup reference in the /github-app skill'
 done
@@ -290,44 +294,42 @@ done
 
 "$INLINE_CHECKER"
 
-assert_help "$GITHUB_DISPATCHER"
-transfer_help=$("$GITHUB_DISPATCHER" issue-transfer --help)
-[ "$transfer_help" = 'usage: ./scripts/gh-app.sh issue-transfer --issue NUMBER --to-repo OWNER/REPO [--repo OWNER/REPO]' ] \
-  || fail "unexpected issue-transfer help: $transfer_help"
 assert_help "$CI_CHECKER"
-for command_name in \
-  push \
-  pr-create \
-  pr-update \
-  issue-get \
-  issue-transfer \
-  issue-create \
-  issue-update \
-  issue-comment \
-  issue-sub-add \
-  issue-block-add \
-  issue-block-remove \
-  issue-block-list \
-  actions-run-view \
-  actions-job-log \
-  actions-rerun-failed; do
-  assert_help "$GITHUB_DISPATCHER" "$command_name"
-done
+assert_help "$GITHUB_DEPENDENCY"
+assert_help "$GITHUB_SUB_ISSUE"
 
 unknown_output=$(mktemp "$TEMP_ROOT/skills-sdlc-interface.XXXXXX")
 trap 'rm -f "$unknown_output"' EXIT
-if (cd "$TEMP_ROOT" && "$GITHUB_DISPATCHER" unknown-command >"$unknown_output" 2>&1); then
-  fail 'unknown dispatcher command succeeded'
-fi
-rg -q '^usage:' "$unknown_output" || fail 'unknown dispatcher command did not print usage'
-if rg -q '\./skills/|gh-app-[a-z-]+\.sh' "$unknown_output"; then
-  fail 'unknown dispatcher command exposed an internal implementation path'
-fi
+for command in "$GITHUB_DEPENDENCY" "$GITHUB_SUB_ISSUE"; do
+  if (cd "$TEMP_ROOT" && "$command" unknown-command >"$unknown_output" 2>&1); then
+    fail "unknown command succeeded: $command"
+  fi
+  rg -q '^usage:' "$unknown_output" || fail "unknown command did not print usage: $command"
+  if rg -q '/skills/' "$unknown_output"; then
+    fail "unknown command exposed an implementation path: $command"
+  fi
+done
 
-if rg -n '\./scripts/github/|gh-app-[a-z-]+\.sh' \
-  "$REPOSITORY_ROOT/./skills" \
-  --glob 'SKILL.md'; then
-  fail 'workflow skills bypass the public scripts interface'
+if rg -n -F './scripts/gh-app.sh' \
+  "$REPOSITORY_ROOT/skills" "$REPOSITORY_ROOT/README.md" "$REPOSITORY_ROOT/CONTRIBUTING.md"; then
+  fail 'documentation references the removed ./scripts/gh-app.sh entry point'
+fi
+# Skills name GitHub App scripts only as the three public entry points. Sibling
+# skills reach them through ../github-app, which resolves in both the repository
+# and installed skill layouts.
+script_reference='[^[:space:]`("]*gh-app[a-z-]*\.sh'
+# shellcheck disable=SC2016
+own_entry_point='^\$\{CLAUDE_SKILL_DIR\}(/\.\./github-app)?/scripts/gh-app(-issue-dependency|-issue-sub-issue)?\.sh$'
+# shellcheck disable=SC2016
+sibling_entry_point='^\$\{CLAUDE_SKILL_DIR\}/\.\./github-app/scripts/gh-app(-issue-dependency|-issue-sub-issue)?\.sh$'
+if rg -o --no-filename --no-line-number "$script_reference" \
+  "$REPOSITORY_ROOT/skills/github-app/SKILL.md" | rg -v "$own_entry_point"; then
+  fail 'the github-app skill bypasses its public entry points'
+fi
+if rg -o --no-filename --no-line-number "$script_reference" \
+  "$REPOSITORY_ROOT/./skills" --glob 'SKILL.md' --glob '!**/github-app/SKILL.md' \
+  | rg -v "$sibling_entry_point"; then
+  fail 'sibling skills bypass the github-app entry points'
 fi
 if rg -n '\./scripts/check-ci-runs\.sh' \
   "$REPOSITORY_ROOT/./skills" \
