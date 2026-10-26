@@ -98,9 +98,10 @@ Delegate to a `verifier` (falling back to `implementer`) sub-agent to perform re
 * `implementation-result.md`
 * `verifications.md`
 
-Review the verification report produced by the verifier.
-Push back on any claims that verifications tests cannot be run in the environment- investigate those claims yourself.
-For verifications that were ran, be skeptical of claims of the strength of verification (what was verified).
+Skeptically review the report produced by the verifier.
+For verifications that are blocked, investigate those claims yourself.
+For verifications that were ran, review claims of the strength of verifications.
+If there are issues with the report, have the `verifier` address them.
 
 ### verifier sub-agent
 
