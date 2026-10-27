@@ -79,7 +79,7 @@ Provide evidence for all the verifications have been performed along with their 
 
 ## Phase 3 - Review
 
-Use `/code-review-with-followup` with these files:
+Use `/code-review-multi` with these files:
 
 * `task-brief.md`
 * `implementation-plan.md`
