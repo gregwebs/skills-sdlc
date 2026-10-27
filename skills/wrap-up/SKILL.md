@@ -19,6 +19,7 @@ For a multi-commit Pull Request, generate a combined commit message that can be 
 When fixing CI failures, if the PR has not yet been reviewed, continue to squash commits together and force push the branch.
 If the PR has been reviewed, generate a single squash commit message to be used when the PR is merged.
 
-Ask the user whether to create tickets/issues for:
-* Out of scope defects seen during implementation
-* New features/enhancements brought up during implementation
+Ask the user whether to create tickets/issues for out of scope work brought up:
+* Unrelated defects
+* Small related features/enhancements
+* Streamlining or enhancing the software delivery process: altering documentation or skills
