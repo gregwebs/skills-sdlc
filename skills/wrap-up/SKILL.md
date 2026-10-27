@@ -22,4 +22,4 @@ If the PR has been reviewed, generate a single squash commit message to be used 
 Ask the user whether to create tickets/issues for out of scope work brought up:
 * Unrelated defects
 * Small related features/enhancements
-* Streamlining or enhancing the software delivery process: altering documentation or skills
+* Improving the software development process- altering documentation or skills to streamline agent usage
