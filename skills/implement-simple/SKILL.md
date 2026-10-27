@@ -10,4 +10,5 @@ Implement the work described by the user in the spec or tickets.
 
 Use `/verify` to verify code as it is written.
 
-Once done, use `/code-review-and-wrapup` to review and complete your work.
+Once done, use `/review-and-wrapup` to review and complete your work.
+If a `reviewer-simpler` agent is available, use that in place of a `reviewer` agent.

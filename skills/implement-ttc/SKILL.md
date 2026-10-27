@@ -8,4 +8,4 @@ Before beginning, `/update-working-copy`
 
 Implement the work described by the user in the spec or tickets using `/type-test-code`.
 
-Once done, use `/code-review-and-wrapup` to review and complete your work.
+Once done, use `/review-and-wrapup` to review and complete your work.
