@@ -15,17 +15,10 @@ metadata:
 
 ## Overview
 
-Create a detailed Implementation Plan for one work item. If an existing plan
-already meets this skill's requirements, use it rather than creating another.
+Create a detailed Implementation Plan for one work item.
+Also produce a requirements specification.
 
-## Prerequisites
-
-If you are running inline in the main conversation and have reason to believe
-this turn is not on a reasoning-tier model, say so and ask whether to switch
-before planning. If you are running as a subagent, do not ask — note the
-limitation in your result and plan anyway.
-
-### Identify the spec source
+### Identify the specification
 
 Use a user-supplied path or ticket first; then an accessible referenced issue;
 then a matching tracked spec; then conversation context. If none exists,
@@ -48,11 +41,15 @@ If it does not, stop and explain the desired split to the user.
 
 The plan must give an implementer enough detail to execute without redesign.
 
+A specification section with:
+* goals (including important non-goals)
+* requirements and acceptance criteria
+
 High-level details:
 1. **Background** — Explain only the system needed for the change. Start with an optional beginner-friendly mental model, then narrow to the exact components, contracts, and prior behavior involved.
 2. **Intuition** — Explain the core idea before implementation detail. Use small concrete toy inputs and outputs with diagrams and examples where apropriate. Show the old and new behavior when comparison makes the change clearer.
 
-Include the assumptions, and relevant standards constraints (these may be present in the spec).
+Include the assumptions, and relevant standards constraints.
 Explain relevant failure modes and how to handle them.
 
 Create diagrams or tables and examples for:

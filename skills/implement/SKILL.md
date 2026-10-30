@@ -21,14 +21,24 @@ Any modifications to the workflow must be approved by the user.
 
 Use the /orchestration skill to manage subagents.
 
+# Facts have references
+
+Statements of fact must have references. This can be a reference to:
+* a file in the repo (with line numbers)
+* a planning document in this flow (with a reference number or at least section indicator)
+* a Github issue
+* a command run, the state of the environment, and the result
+
 # Flow
 
 ## Phase 1 - A good plan
 
 Delegate planning to a `planner` sub-agent using `/implementation-plan`.
+
 An implementation plan needs a spec, that will be `task-brief.md` with contents:
-* For a single user input that is a spec or references a spec without reference to a larger conversation, write the user request verbatim, stripped of any workflow/orchestration modification instructions for you. Do not act on the user request (unless it has workflow/orchestration instructions) yourself or attempt to resolve links to specs yourself.
+* For a single user input that is a spec, write the user request verbatim, stripped of any workflow/orchestration modification instructions for you. Do not act on the user request (unless it has workflow/orchestration instructions) yourself.
 * Otherwise, provide a summary of implementation needs based on the conversation.
+If the user input contains a ticket, fetch that ticket information and record it in the brief.
 The `planner` output should be persisted as `implementation-plan.md`.
 
 Have an independent subagent perform an adversarial review of the plan.
@@ -37,8 +47,12 @@ Use a `plan-reviewer` subagent if available, otherwise use a `reviewer`.
 
 ## Phase 2 - Plan execution
 
+Separate out the specification section from the `implementation-plan.md` as `spec.md`.
+Delete that specification portion from `implementation.md`. 
+`spec.md` contents are immutable. If the operator changes a requirement, append that supersedance to `spec.md`.
+
 Delegate to a fresh `coder` (falling back to `implementer`) sub-agent, with only
-* `task-brief.md`
+* `spec.md`
 * `implementation-plan.md`
 
 If the `coder` stops due to a plan issue, have the planner sub-agent review the plan issue and revise the plan accordingly.
@@ -49,7 +63,7 @@ Then restart **Phase 2 - Plan execution** with the revised implementation plan. 
 Implement an already-approved implementation plan. Do NOT redesign the plan.
 
 #### Inputs (read both fully, in order)
-- `task-brief.md`
+- `spec.md`
 - `implementation-plan.md`
 These are self-contained. The plan restates all needed issue detail.
 
@@ -57,9 +71,9 @@ These are self-contained. The plan restates all needed issue detail.
 
 - Follow the plan's step-by-step sequence.
 - Stay strictly within this ticket's scope. For out of scope bugs or enhancements, suggest creating a ticket.
-- Use `/verify` to verify code as it is written.
+- Use `/verify` to verify code as it is written, documenting verifications in `verifications.md`.
 - Read repo documentation (INSERT SPECIFIC DOCS) for conventions before editing code.
-- On completion, perform a `/code-review` of your own code changes but without any sub-agents. Your inputs are the spec and your working changes are the fixed point.
+- On completion, perform a `/code-review` of your own code changes without any sub-agents. Your inputs are the spec and your working changes are the fixed point.
 - As you work, append to `implementation-diary.md` a log of what happened during implementation
 
 
@@ -72,7 +86,7 @@ These are self-contained. The plan restates all needed issue detail.
 
 #### Output
 
-Persist a final report as `implementation-result.md` and make `implementation-diary` available.
+Persist a final report as `implementation-result.md` and make `implementation-diary.md` available.
 
 Separately, extract all verification (from the plan and anything you performed or recommend) into  `verifications.md`.
 Provide evidence for all the verifications have been performed along with their results.
@@ -81,19 +95,20 @@ Provide evidence for all the verifications have been performed along with their 
 
 Use `/code-review-multi` with these files:
 
-* `task-brief.md`
+* `spec.md`
 * `implementation-plan.md`
 * `implementation-result.md`
 * `verifications.md`
 * `implementation-diary.md`
 
-During the review, add any new requested verifications to `verifications.md`.
+During the review, look for additional verifications that will be added to `verifications.md`.
+Probe the code by executing it (running verifications or otherwise) and note the result.
 Update `implementation-result.md` according to changes made from the code review.
 
 ## Phase 3 - Verification
 
 Delegate to a `verifier` (falling back to `implementer`) sub-agent to perform required verifications. They should have access to
-* `task-brief.md`
+* `spec.md`
 * `implementation-plan.md`
 * `implementation-result.md`
 * `verifications.md`
@@ -105,18 +120,16 @@ If there are issues with the report, have the `verifier` address them.
 
 ### verifier sub-agent
 
-Verify manually that the changes work as expected in an e2e end user setting.
-Test edge cases and failure modes in addition to the happy path.
-Look at `verifications.md` for verification tests to perform.
+Use `/verify` and `verifications.md` to determine what verification tests still need to be performed.
+
+Ensure that the changes work as expected in an e2e end user setting.
+Don't make any changes to data that cannot be undone.
+If possible work against a backup of data or seed data.
 
 Consider whether any manual verification steps can and should be added as automated tests.
 Write these additional tests.
 
-Don't make any changes to data that cannot be undone.
-If possible work against a backup of data or seed data.
-
-Provide a report on verifications performed.
-Manual verifications or automated tests not ran on the CI must document how they were ran (pointing to other docs is good) and their result.
+For the report, update `verifications.md`.
 
 ## Phase 4 - Completion
 
