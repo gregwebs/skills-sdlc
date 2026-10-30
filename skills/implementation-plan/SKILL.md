@@ -97,7 +97,8 @@ Review in this order and incorporate the findings into the plan:
 1. **Spec** — completeness and scope.
 2. **Architecture**
    - Ensure that we are developing deep modules as described in the `/codebase-design` skill.
-   - module boundaries and trade-offs; use optional glossary and ADR context
+   - Can we make the change touch fewer files or otherwise be less invasive?
+   - Use relevant ADRs
 3. **Quality** — standards, tests, and operational risks.
 
 Present the revised plan as the reviewable output.
