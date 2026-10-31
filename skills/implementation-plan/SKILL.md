@@ -8,7 +8,7 @@ metadata:
       source-scope-sha256: "93a4cc1ed1ed855ba72d84034ca8f4a72e819cec7d595694b84bb6d53970327c"
       components:
         - source-section: "### 2. Identify the spec source"
-          local-section: "### Identify the spec source"
+          local-section: "### Identify the specification"
         - source-section: "### 3. Identify the standards sources"
           local-section: "### Identify the standards sources"
 ---
