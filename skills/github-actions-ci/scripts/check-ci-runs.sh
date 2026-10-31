@@ -3,6 +3,11 @@
 #
 # Usage: check-ci-runs.sh [--wait] [--job JOB_NAME] [COMMIT]
 # COMMIT defaults to HEAD. With --wait, poll until the selected check runs complete.
+#
+# One commit can carry several check runs with the same name: a repository that
+# triggers CI on both `push` and `pull_request` runs each workflow twice. Every
+# one of them is reported and every one is judged, because GitHub's own PR
+# rollup fails the commit when any fails.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -110,14 +115,13 @@ probe_get() {
   curl_get "$1" 2>/dev/null || true
 }
 
-# shellcheck disable=SC2016 # jq sees $job; the shell must not expand it.
+# Every GitHub Actions check run for the commit, in report order. Deliberately
+# *not* `group_by(.name) | map(max_by(.started_at))`: that collapses two CI
+# triggers into the newer one, which once reported a green PR while the push run
+# for the same commit had failed.
 actions_checks_query='
-  [.check_runs[]
-   | select(.app.slug == "github-actions")]
+  [.check_runs[] | select(.app.slug == "github-actions")]
   | sort_by(.name, (.started_at // .created_at // ""))
-  | group_by(.name)
-  | map(max_by(.started_at // .created_at // ""))
-  | sort_by(.name)
 '
 other_runs_query='[.check_runs[] | select(.app.slug != "github-actions")]'
 
@@ -211,7 +215,19 @@ while true; do
     exit 2
   fi
 
-  jq -r '.[] | "\(.name): \(.status) (\(.conclusion // "pending"))\n\(.html_url)"' <<<"$selected"
+  # `scan`, not `capture`: `capture` yields nothing when the URL has no workflow
+  # run in it, and an empty stream here would silently drop the report line.
+  jq -r '
+    . as $checks
+    | ($checks | group_by(.name) | map({key: .[0].name, value: length}) | from_entries) as $count
+    | $checks[]
+    | . as $check
+    | ([($check.html_url // "") | scan("/runs/([0-9]+)/")]
+       | if length > 0 then .[0][0] else null end) as $run
+    | "\($check.name): \($check.status) (\($check.conclusion // "pending"))"
+      + (if ($count[$check.name] > 1 and $run != null) then " [run \($run)]" else "" end)
+      + "\n\($check.html_url)"
+  ' <<<"$selected"
 
   if jq -e 'all(.[]; .status == "completed" and (.conclusion | IN("success","skipped","neutral")))' \
     >/dev/null <<<"$selected"; then

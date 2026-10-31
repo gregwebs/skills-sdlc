@@ -80,6 +80,32 @@ write_fixture check_runs_success_with_neutral.json \
      {"name":"build","app":{"slug":"github-actions"},"status":"completed","conclusion":"success","html_url":"https://x/1","started_at":"2024-01-01T00:00:00Z"},
      {"name":"lint","app":{"slug":"github-actions"},"status":"completed","conclusion":"neutral","html_url":"https://x/2","started_at":"2024-01-01T00:00:00Z"}
    ]}'
+# A repository that triggers CI on both `push` and `pull_request` gives one
+# commit two check runs with the same name, from different workflow runs. The
+# regression this covers: collapsing them to the newest reported success while
+# the other had failed, so the PR looked green.
+write_fixture check_runs_two_triggers_one_failed.json \
+  '{"check_runs":[
+     {"name":"build-and-test","app":{"slug":"github-actions"},"status":"completed","conclusion":"success","html_url":"https://github.com/example/repo/actions/runs/100/job/1","started_at":"2024-01-01T00:00:00Z"},
+     {"name":"build-and-test","app":{"slug":"github-actions"},"status":"completed","conclusion":"failure","html_url":"https://github.com/example/repo/actions/runs/200/job/2","started_at":"2024-01-01T00:00:06Z"}
+   ]}'
+write_fixture check_runs_two_triggers_success.json \
+  '{"check_runs":[
+     {"name":"build-and-test","app":{"slug":"github-actions"},"status":"completed","conclusion":"success","html_url":"https://github.com/example/repo/actions/runs/100/job/1","started_at":"2024-01-01T00:00:00Z"},
+     {"name":"build-and-test","app":{"slug":"github-actions"},"status":"completed","conclusion":"success","html_url":"https://github.com/example/repo/actions/runs/200/job/2","started_at":"2024-01-01T00:00:06Z"}
+   ]}'
+write_fixture check_runs_two_triggers_one_running.json \
+  '{"check_runs":[
+     {"name":"build-and-test","app":{"slug":"github-actions"},"status":"completed","conclusion":"success","html_url":"https://github.com/example/repo/actions/runs/100/job/1","started_at":"2024-01-01T00:00:00Z"},
+     {"name":"build-and-test","app":{"slug":"github-actions"},"status":"in_progress","conclusion":null,"html_url":"https://github.com/example/repo/actions/runs/200/job/2","started_at":"2024-01-01T00:00:06Z"}
+   ]}'
+# Same shape with URLs that name no workflow run: the run-id suffix must be
+# skipped rather than turn a readable report into a jq error.
+write_fixture check_runs_two_triggers_opaque_urls.json \
+  '{"check_runs":[
+     {"name":"build-and-test","app":{"slug":"github-actions"},"status":"completed","conclusion":"success","html_url":"https://x/1","started_at":"2024-01-01T00:00:00Z"},
+     {"name":"build-and-test","app":{"slug":"github-actions"},"status":"completed","conclusion":"success","html_url":"https://x\/2","started_at":"2024-01-01T00:00:06Z"}
+   ]}'
 write_fixture actions_runs_zero.json '{"total_count":0}'
 write_fixture actions_runs_nonzero.json '{"total_count":1}'
 write_fixture workflows_zero_active.json '{"workflows":[]}'
@@ -189,6 +215,35 @@ assert_stdout_contains 'lint: completed (neutral)'
 run_case check_runs_job_missing.json '' '' 120 -- --job deploy
 assert_status 2
 assert_stderr_contains 'deploy: not found among 1 GitHub Actions checks'
+
+# Two CI triggers, same name, one failed: the failure decides (GitHub's own PR
+# rollup does the same), and both outcomes are printed with their run ids so the
+# reader can tell the triggers apart.
+run_case check_runs_two_triggers_one_failed.json '' '' 120 --
+assert_status 1
+assert_stdout_contains 'build-and-test: completed (success) [run 100]'
+assert_stdout_contains 'build-and-test: completed (failure) [run 200]'
+
+# Both triggers passed: success, still two distinct reports.
+run_case check_runs_two_triggers_success.json '' '' 120 --
+assert_status 0
+assert_stdout_contains 'build-and-test: completed (success) [run 100]'
+assert_stdout_contains 'build-and-test: completed (success) [run 200]'
+
+# One trigger still running is pending, not success and not failure.
+run_case check_runs_two_triggers_one_running.json '' '' 120 --
+assert_status 2
+
+# A repeated name whose URLs name no run still reports both, without a suffix.
+run_case check_runs_two_triggers_opaque_urls.json '' '' 120 --
+assert_status 0
+assert_stdout_contains 'build-and-test: completed (success)'
+[ "$(rg -c 'build-and-test: completed \(success\)$' "$OUT")" = 2 ] \
+  || fail "expected two suffix-free reports (got: $(cat "$OUT"))"
+
+# --job judges every run with that name, not just the newest.
+run_case check_runs_two_triggers_one_failed.json '' '' 120 -- --job build-and-test
+assert_status 1
 
 # No check runs at all, and the repo has zero active workflows: this is a
 # clean, unambiguous conclusion, so it succeeds even without --wait.
