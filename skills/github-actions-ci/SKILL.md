@@ -27,6 +27,33 @@ The stable approval prefix is:
 ${CLAUDE_SKILL_DIR}/scripts/check-ci-runs.sh
 ```
 
+## Several check runs share a name
+
+One commit can carry more than one check run per workflow. A repository that
+triggers CI on both `push` and `pull_request` runs each workflow twice, so the
+same commit has two `build-and-test` check runs from two workflow runs, and
+GitHub's own PR rollup fails the commit when **either** fails
+(`mergeStateStatus: UNSTABLE`).
+
+The helper reports every one of them and judges every one; when a name repeats,
+it prints the workflow run id so the two triggers stay distinguishable:
+
+```text
+build-and-test: completed (success) [run 41197892063]
+https://github.com/o/r/actions/runs/41197892063/job/…
+build-and-test: completed (failure) [run 41197885241]
+https://github.com/o/r/actions/runs/41197885241/job/…
+```
+
+It never collapses a repeated name to the newest run. Doing that once reported a
+green PR while the `push` run for the same commit had failed — the two runs were
+six seconds apart, so "latest" was the passing one.
+
+For a PR, `gh pr view <number> --json statusCheckRollup` lists the same check
+runs and is the second opinion to read before acting: a difference between it
+and the helper means a check run is attached to the commit but not selected by
+the PR, or the reverse. Read the run ids before rerunning anything.
+
 ## Rerun failed jobs
 
 After confirming a failure is transient or unrelated to the change, rerun the
@@ -89,6 +116,10 @@ Exit status means:
 - `1`: at least one selected check completed unsuccessfully.
 - `2`: selected checks are pending or undetermined when not using `--wait`.
 
+A repeated name counts as several selected checks: `--job build-and-test`
+judges both triggers' runs, so one failing is exit `1` even when the other
+passed.
+
 Always relay the job URL printed by the helper.
 
 ## No CI configured
@@ -102,7 +133,10 @@ otherwise keep monitoring a commit that has nothing to report.
 ## Handle results
 
 On success, run the unfiltered helper once to report the complete final CI
-state when the repository workflow requires all jobs to pass.
+state when the repository workflow requires all jobs to pass. "Complete" means
+every check run the helper lists, repeated names included — do not report a
+commit green from a `--job` run alone, and on a PR cross-check
+`gh pr view <number> --json statusCheckRollup` before calling it green.
 
 On failure:
 
