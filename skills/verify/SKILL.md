@@ -153,7 +153,9 @@ Use discovered failures to create minimized permanent regression tests.
 
 ## Mutation testing
 
-Use selectively for important logic when ordinary test results and coverage do not provide enough confidence.
+Use for
+* tests moved to a new test seam- this can often produce tests that don't fail
+* important logic when ordinary test results and coverage do not provide enough confidence.
 
 Mutation testing is particularly useful for determining whether tests would detect subtle changes to:
 
