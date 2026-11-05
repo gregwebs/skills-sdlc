@@ -1,8 +1,8 @@
 ## Overview
 
 Agents produce amazing prototypes.
-A SDLC process is designed to produce quality production code.
-Here we provide skills to structure agent workflows and produce high quality code.
+An SDLC process is designed to produce quality production code.
+This repo provides skills to structure agent workflows and produce high quality code.
 
 This is achieved by:
 * outlining a workflow that emphasizes specing, planning, testing, verification, and architecture/design
@@ -12,8 +12,8 @@ The downside is increased time and cost for AI to implement a change.
 
 For a sustained non-prototype code base you should save on time and costs due to
 * Fewer defects
-* You spend less time productionizing agent code
 * A more agile code base (future changes are less costly to make)
+* You spend less time reviewing and testing agent code
 
 
 ## Workflow
@@ -24,8 +24,8 @@ Find work -> Spec with a grilling session -> create Tickets -> Implement a ticke
 
 Workflows are started by you, normally with a frontier model using these skills:
 
-* /grill-with-docs (new feature or enhancement)
-* /improve-codebase-architecture (cleanup your slop, goes into a grilling session)
+* /grill-with-docs - new feature or enhancement
+* /improve-codebase-architecture - cleanup your slop, goes into a grilling session
 * /diagnosing-bugs
 
 Next work can then be broken down into slices and published with:
@@ -38,22 +38,21 @@ However, the right size work items will keep context sizes from bloating to help
 Then implement changes with
 
 * /implement
+* /implement-simple - no planning phase
 
 This orcestrates planning, implementing, reviewing, and verification.
 If you install the agents in this repo, it will use them to switch between different models for planning (expensive) and implementation (cheaper).
 
 
-## Docs
+## Customizing
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for how to test changes to this repo.
-
-## Implementation
-
-The implementation is in the skills.
 The skill files are designed to be generic with respect to programming language and project.
 You customize things for your repo by editing
 * AGENTS.md (or CLAUDE.md)
 * CODING_STANDARDS.md - for writing and reviewing code, this project has a generator
+
+If you make changes to the skills themselves, see [CONTRIBUTING.md](./CONTRIBUTING.md) for how to test changes to this repo.
+
 
 ### Installing
 
@@ -80,18 +79,6 @@ necessary. A plain pull can leave the upstream checkout old or missing.
 
 When `~/.claude` exists, matching links are also installed in `~/.claude/skills`.
 
-Install the repository's agent definitions with:
-
-```sh
-./scripts/install-agents.sh [--dry-run] [--force] [--help]
-```
-
-This links `agents/*.md` into `~/.claude/agents` and `.codex/agents/*.toml`
-into `~/.codex/agents`. Both destination directories are created as needed;
-Overwriting is refused by default: use `--force` to overwrite with a timestamped adjacent backup.
-When `~/.pi` exists, `.pi/agent/agents/*.{md,toml}` is also linked into
-`~/.pi/agent/agents`.
-
 Generate a project's `CODING_STANDARDS.md` from this repository's
 [standards/](./standards) documents with:
 
@@ -104,6 +91,25 @@ Generate a project's `CODING_STANDARDS.md` from this repository's
 Positional arguments name which `standards/*.md` documents to add to the standard and in which order.
 
 You may not always go through the full flow. Sometimes the bug seems very simple and you can just ask the agent to fix it and then send a /pull-request. Or you think a grilling session is unnecessary for a simple change and you go from a conversation to /tickets. The workflow has lots of pieces that you can use however you see fit.
+
+Install the repository's agent definitions with:
+
+```sh
+./scripts/install-agents.sh [--dry-run] [--force] [--help]
+```
+
+This links `agents/*.md` into `~/.claude/agents` and `.codex/agents/*.toml`
+into `~/.codex/agents`. Both destination directories are created as needed;
+Overwriting is refused by default: use `--force` to overwrite with a timestamped adjacent backup.
+When `~/.pi` exists, `.pi/agent/agents/*.{md,toml}` is also linked into
+`~/.pi/agent/agents`.
+
+The best setup requires using multiple AI providers and that will require making additional subagent definitions.
+I also have a [Pi plugin for dynamically altering the subagents based on available quota](https://github.com/gregwebs/pi-quota-dispatcher).
+
+This only installs a few default subagents, but you can customize the skills by setting up these agents:
+* coder, verifier, tester - falls back to implementer
+* reviewer, reviewer-simple, plan-reviewer - falls back to implementer
 
 
 ### Differences
