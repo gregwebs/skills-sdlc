@@ -24,21 +24,21 @@ Find work -> Spec with a grilling session -> create Tickets -> Implement a ticke
 
 Workflows are started by you, normally with a frontier model using these skills:
 
-* /grill-with-docs - new feature or enhancement
-* /improve-codebase-architecture - cleanup your slop, goes into a grilling session
-* /diagnosing-bugs
+* [/grill-with-docs](./vendor/mattpocock/skills/engineering/grill-with-docs/SKILL.md) - new feature or enhancement
+* [/improve-codebase-architecture](./vendor/mattpocock/skills/engineering/improve-codebase-architecture/SKILL.md) - cleanup your slop, goes into a grilling session
+* [/diagnosing-bugs](./vendor/mattpocock/skills/engineering/diagnosing-bugs/SKILL.md)
 
 Next work can then be broken down into slices and published with:
 
-* /tickets (/github-tickets for Github users)
+* [/tickets](./skills/tickets/SKILL.md) ([/github-tickets](./skills/github-tickets/SKILL.md) for Github users)
 
 The process of slicing up work into separate tickets strictly speaking isn't necessary.
 However, the right size work items will keep context sizes from bloating to help agents perform better.
 
 Then implement changes with
 
-* /implement
-* /implement-simple - no planning phase
+* [/implement](./skills/implement/SKILL.md)
+* [/implement-simple](./skills/implement-simple/SKILL.md) - no planning phase
 
 This orcestrates planning, implementing, reviewing, and verification.
 If you install the agents in this repo, it will use them to switch between different models for planning (expensive) and implementation (cheaper).
@@ -90,7 +90,7 @@ Generate a project's `CODING_STANDARDS.md` from this repository's
 
 Positional arguments name which `standards/*.md` documents to add to the standard and in which order.
 
-You may not always go through the full flow. Sometimes the bug seems very simple and you can just ask the agent to fix it and then send a /pull-request. Or you think a grilling session is unnecessary for a simple change and you go from a conversation to /tickets. The workflow has lots of pieces that you can use however you see fit.
+You may not always go through the full flow. Sometimes the bug seems very simple and you can just ask the agent to fix it and then send a [/pull-request](./skills/pull-request/SKILL.md). Or you think a grilling session is unnecessary for a simple change and you go from a conversation to [/tickets](./skills/tickets/SKILL.md). The workflow has lots of pieces that you can use however you see fit.
 
 Install the repository's agent definitions with:
 
@@ -117,19 +117,19 @@ This only installs a few default subagents, but you can customize the skills by 
 The main difference between this repo and using mattpocock/skills directly is
 * an implementation plan
 * reviews at every step
-* /verify instead of /tdd
+* [/verify](./skills/verify/SKILL.md) instead of [/tdd](./vendor/mattpocock/skills/engineering/tdd/SKILL.md)
 
 #### Implement with a plan
 
-The override of /implement adds the concept of an Implementation Plan. The spec created by mattpocock/skills is intentionally not very detailed since details can change.
+The override of [/implement](./skills/implement/SKILL.md) adds the concept of an Implementation Plan. The spec created by mattpocock/skills is intentionally not very detailed since details can change.
 An Implementation Plan is detailed, and is generated at the start of the implementation. This can be done in plan mode by a smarter agent (Opus/Fable).
 After the plan is approved a more efficient agent (Sonnet) can take over.
 
 ### Verifications
 
-/verify replaces /tdd
+[/verify](./skills/verify/SKILL.md) replaces [/tdd](./vendor/mattpocock/skills/engineering/tdd/SKILL.md)
 
-`/verify` focuses on test quality rather than quantity.
+[/verify](./skills/verify/SKILL.md) focuses on test quality rather than quantity.
 Testing has great evidence behind it in human software engineering.
 However, without proper guidance on how to test, the LLM [tests do not necesssarily equate to better code](https://arxiv.org/abs/2602.07900).
 
@@ -145,7 +145,7 @@ the `opusplan` model alias- this can be done in  `.claude/settings.local.json`.
 This requires explicit approval to move between planning and implementation.
 Opus Plan mode helps ensure cost effective module usage by switching between Opus for planning and Sonnet for implementation.
 
-The workflow in this repo does an automatic planning mode (no user approval required)- this works if you already aligned with the /grill-with-docs.
+The workflow in this repo does an automatic planning mode (no user approval required)- this works if you already aligned with the [/grill-with-docs](./vendor/mattpocock/skills/engineering/grill-with-docs/SKILL.md).
 
 
 #### Agent review at every step
@@ -154,22 +154,22 @@ A separate agent provides an adversarial review of both the plan and the code.
 
 #### Agent sends a Pull Request
 
-A /pull-request skill is provided. This is Github specific and conditional on setting up access and instructing in AGENTS.md/CLAUDE.md to send a PR.
+A [/pull-request](./skills/pull-request/SKILL.md) skill is provided. This is Github specific and conditional on setting up access and instructing in AGENTS.md/CLAUDE.md to send a PR.
 
 #### Include code references in tickets
 
-/spec and /tickets override the original /to-spec and /to-tickets so that they include code refrences.
+[/spec](./skills/spec/SKILL.md) and [/tickets](./skills/tickets/SKILL.md) override the original [/to-spec](./vendor/mattpocock/skills/engineering/to-spec/SKILL.md) and [/to-tickets](./vendor/mattpocock/skills/engineering/to-tickets/SKILL.md) so that they include code refrences.
 
 ## Engineering discipline
 
 The key to letting agents do more work for you is increasing the engineering discipline.
 Agents are perfectly happy to implement linting, ci, e2e tests, etc *if you direct them to*.
-The /implement skill directs the agent to use /tdd.
+The [/implement](./skills/implement/SKILL.md) skill directs the agent to use [/tdd](./vendor/mattpocock/skills/engineering/tdd/SKILL.md).
 But the rest is largely project specific and is up to you to specify in your documentation and to spend time implementing these engineering practices.
 
 ### Verus proofs
 
-There is a /verus skill for Rust code that uses the [Verus](https://verus-lang.github.io/verus/guide/) verifier.
+There is a [/verus](./skills/rust/verus/SKILL.md) skill for Rust code that uses the [Verus](https://verus-lang.github.io/verus/guide/) verifier.
 It drives the run-verify-edit loop for proof annotations and refuses to change specifications or executable code.
 The result is gated by `verus --no-cheating` and by a bundled diff checker that catches the proof shortcuts the flag misses, such as `axiom` and weakened contracts.
 
@@ -181,7 +181,7 @@ Link it into the agent skill directory when working in a Verus project.
 If you are going to give the agent autonomy to interact with Github, it is better that it doesn't actually appear to be you and that permissions are restricted as much as possible.
 If you use the Claude Github app, the interaction will appear to be directly from you and you cannot alter the permissions, only the repos that it has access to.
 
-There is a skill /github-app in this repo to help the agent authenticate as Github application rather than as you.
+There is a skill [/github-app](./skills/github-app/SKILL.md) in this repo to help the agent authenticate as Github application rather than as you.
 It runs the `gh` CLI with a GitHub App installation token, so the agent uses `gh`'s own commands.
 Setup is three App credential files in `~/.config/github-app/`; see the skill's Setup reference.
 It needs `gh`, `jq`, `curl`, and OpenSSL.
@@ -190,7 +190,7 @@ This will not work on Claude Code for the Web (cloud) because they block Github 
 
 ### Github Actions CI
 
-There is a /github-actions-ci skill for the purpose of not asking for permission to interact with github actions.
+There is a [/github-actions-ci](./skills/github-actions-ci/SKILL.md) skill for the purpose of not asking for permission to interact with github actions.
 Its check-run helper is bundled and allow-listed with `${CLAUDE_SKILL_DIR}`, so
 the repository being checked does not need its own CI wrapper script.
 
