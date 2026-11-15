@@ -40,6 +40,7 @@ Then implement changes with
 
 * [/implement](./skills/implement/SKILL.md)
 * [/implement-simple](./skills/implement-simple/SKILL.md) - no planning phase
+* [/implement-ttc](./skills/implement-ttc/SKILL.md) - types first, then independent tests and code ([/type-test-code](./skills/type-test-code/SKILL.md))
 
 This orcestrates planning, implementing, reviewing, and verification.
 If you install the agents in this repo, it will use them to switch between different models for planning (expensive) and implementation (cheaper).
