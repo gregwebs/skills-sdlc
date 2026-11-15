@@ -48,6 +48,7 @@ If you didn't use these flows and an agent already wrote code, you can use
 * [/code-review-with-followup](./skills/code-review-with-followup/SKILL.md) - a reviewer reviews and then checks on review fixes by a coder
 * [/verify](./skills/verify/SKILL.md) - throrough testing of changes
 * [/wrap-up](./skills/wrap-up/SKILL.md) - commit and send a /pull-request
+* [/cleanup](./skills/cleanup/SKILL.md) - after the merge: drop the branch, worktree, temp files, containers, and images
 
 ## Customizing
 
