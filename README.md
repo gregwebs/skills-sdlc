@@ -27,6 +27,7 @@ Workflows are started by you, normally with a frontier model using these skills:
 * [/grill-with-docs](./vendor/mattpocock/skills/engineering/grill-with-docs/SKILL.md) - new feature or enhancement
 * [/improve-codebase-architecture](./vendor/mattpocock/skills/engineering/improve-codebase-architecture/SKILL.md) - cleanup your slop, goes into a grilling session
 * [/diagnosing-bugs](./vendor/mattpocock/skills/engineering/diagnosing-bugs/SKILL.md)
+* [/easy-issues](./skills/easy-issues/SKILL.md) - clear straightforward tracker tasks autonomously, simplest first
 
 Next work can then be broken down into slices and published with:
 
