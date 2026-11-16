@@ -23,6 +23,7 @@ Ask the user whether to create tickets/issues for out of scope work brought up:
 * Unrelated defects
 * Small related features/enhancements
 * Improving the software development process- altering documentation or skills to streamline agent usage
+* A new tool or enhancing existing tools that would encompass ad-hoc code that was written to help analyze/test and then discarded
 
 If a `/cleanup` has not been performed,
 * If there is a /pull-request tell the user you will run `/cleanup` once it is merged, and monitor the /pull-request for a merge.
