@@ -30,7 +30,7 @@ work the simplest issues first.
 
 ## Working issues
 
-Use `/loop-issues` to work through the issues.
+Use `/loop-issues` to work through the issues, using `/implement-simple` to implement each issue.
 
 For each issue add the following steps to the `/loop-issues` process:
 
