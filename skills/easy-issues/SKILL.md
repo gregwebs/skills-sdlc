@@ -8,12 +8,6 @@ description: Find and work through easy issue-tracker tasks autonomously, simple
 Work through the project's open issues until no simple work remains, quota is
 exhausted, or the operator says to stop.
 
-Use `/orchestration` to manage subagents.
-Keep the coordinator focused on triage and handoffs; delegate investigation and
-implementation. Run only one issue at a time, including its child workflows.
-Finish or stop that issue's agents before starting another, so several issues
-cannot exhaust quota together.
-
 ## Find and rank work
 
 Identify the project's tracker from repository instructions and remotes. Use its
@@ -34,38 +28,22 @@ When you find a very straightforward and simple issue, go ahead and work that on
 Otherwise go through issues and rank them by expected total effort and uncertainty and
 work the simplest issues first.
 
-## Working an issue
+## Working issues
 
-Use a separate branch/worktree for each issue.
-Use `/orchestration` to start a fresh subagent without inherited conversation history.
-Give it the issue link, repository and artifact paths, relevant constraints, and this assignment:
+Use `/loop-issues` to work through the issues.
+
+For each issue add the following steps to the `/loop-issues` process:
 
 1. Read repository instructions and the full issue. Confirm the task is clear,
    small, unclaimed, and solvable without operator help.
 2. Determine a solution. For a non-obvious bug, use `/diagnosing-bugs`. If the
    investigation reveals substantial scope or needs operator input, checkpoint
    and return instead of expanding the task or waiting for an answer.
-3. Once the solution is determined, use `/implement-simple` to implement, verify,
-   review, and finish it. Follow that workflow's existing authorization rules for
-   commits, PRs, and tracker updates.
-4. Update the issue's progress artifact incrementally. Return a concise status:
-   completed, needs operator help, complicated, or quota exhausted. Include
-   findings, changes, verification results, branch/worktree and commit/PR links,
-   remaining work, and the exact input needed to continue, when applicable.
-
 
 ## Continuing to next issues
 
 If an issue needs help, write a progress summary in its artifacts and on the issue if authorized.
 Label the issue with an agreed upon label and continue to the next candidate issue without waiting for the operator.
-
-If an issue is completed, inform the user without waiting for a response.
-
-Check for quota exhaustion and operator stop instructions before
-starting another issue.
-
-If access, quota, configuration, etc is blocking you from finishing an issue,
-stop rather than attempting every issue against the same blocker.
 
 ## Stop and report
 
