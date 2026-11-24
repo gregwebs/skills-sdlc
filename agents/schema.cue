@@ -29,12 +29,19 @@ package agents
 
 // ~/.gemini/config/agents/<name>.md frontmatter.
 #Antigravity: {
-	model?:                  "inherit" | "flash" | "pro"
+	model?:                  #AntigravityModel
 	tools?:                  [...#AntigravityTool]
 	mainAgent?:              bool
 	subagent?:               bool
 	commandExecutionPolicy?: "off" | "auto" | "eager" | "sandbox"
 }
+
+// A tier alias that Antigravity resolves from the user's configuration, or a
+// concrete model id such as gemini-4-neon-high. Aliases outlive the model
+// catalog; ids pin an exact model and thinking level.
+#AntigravityModel:
+	"inherit" | "flash_lite" | "flash" | "pro" |
+		=~"^[a-z][a-z0-9]*(-[a-z0-9]+)+$"
 
 // Antigravity hangs a subagent whose tools list names an unmapped tool, so this
 // list stays short. Extend it only with a name verified in

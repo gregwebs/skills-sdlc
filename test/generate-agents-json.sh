@@ -75,6 +75,26 @@ printf 'package agents\n\nbroken: #Agent & {name: "broken", description: "d", an
 assert_failure "$GENERATOR" --agent-dir "$BAD_TOOL_DIR"
 assert_output "$TEMP_ROOT/output" 'cue export failed for:'
 
+# Antigravity accepts a tier alias or a concrete model id; a malformed model
+# string is rejected.
+MODEL_DIR="$TEMP_ROOT/model agents"
+mkdir -p "$MODEL_DIR"
+cp "$REPOSITORY_ROOT"/agents/schema.cue "$MODEL_DIR/"
+printf 'package agents\n\npinned: #Agent & {name: "pinned", description: "d", antigravity: {model: "gemini-4-neon-high"}}\n' \
+  >"$MODEL_DIR/pinned.cue"
+"$GENERATOR" --agent-dir "$MODEL_DIR" >/dev/null 2>&1 ||
+  fail 'concrete Antigravity model id was rejected'
+jq -e '.antigravity.model == "gemini-4-neon-high"' "$MODEL_DIR/pinned.json" >/dev/null ||
+  fail 'model id did not reach the JSON'
+
+BAD_MODEL_DIR="$TEMP_ROOT/bad model agents"
+mkdir -p "$BAD_MODEL_DIR"
+cp "$REPOSITORY_ROOT"/agents/schema.cue "$BAD_MODEL_DIR/"
+printf 'package agents\n\npinned: #Agent & {name: "pinned", description: "d", antigravity: {model: "gemini 4 neon"}}\n' \
+  >"$BAD_MODEL_DIR/pinned.cue"
+assert_failure "$GENERATOR" --agent-dir "$BAD_MODEL_DIR"
+assert_output "$TEMP_ROOT/output" 'cue export failed for:'
+
 # Usage errors.
 "$GENERATOR" --help >"$TEMP_ROOT/help"
 for option in --check --agent-dir -h --help; do

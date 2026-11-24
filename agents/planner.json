@@ -20,7 +20,7 @@
         "sandbox_mode": "read-only"
     },
     "antigravity": {
-        "model": "pro",
+        "model": "gemini-4-neon-high",
         "tools": [
             "view_file",
             "grep_search",
