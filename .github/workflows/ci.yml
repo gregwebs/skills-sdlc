@@ -8,7 +8,8 @@ on:
 jobs:
   test:
     # macOS: the test suite uses /private/tmp and Homebrew curl. Install bash 5
-    # for `mapfile`, shellcheck and ripgrep, and coreutils for `timeout`.
+    # for `mapfile`, shellcheck and ripgrep, coreutils for `timeout`, and cue so
+    # stale checked-in agent JSON fails the build.
     runs-on: macos-latest
     steps:
       - name: Check out repository
@@ -17,7 +18,7 @@ jobs:
           submodules: recursive
 
       - name: Install test dependencies
-        run: brew install bash shellcheck ripgrep coreutils
+        run: brew install bash shellcheck ripgrep coreutils cue
 
       - name: Run tests
         run: |

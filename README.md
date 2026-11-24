@@ -98,17 +98,35 @@ Positional arguments name which `standards/*.md` documents to add to the standar
 
 You may not always go through the full flow. Sometimes the bug seems very simple and you can just ask the agent to fix it and then send a [/pull-request](./skills/pull-request/SKILL.md). Or you think a grilling session is unnecessary for a simple change and you go from a conversation to [/tickets](./skills/tickets/SKILL.md). The workflow has lots of pieces that you can use however you see fit.
 
-Install the repository's agent definitions with:
+Install the repository's agent definitions for the platforms you use:
 
 ```sh
-./scripts/install-agents.sh [--dry-run] [--force] [--help]
+./scripts/install-agents.sh [--platform claude|codex|antigravity|all]... [--dry-run] [--force] [--help]
 ```
 
-This links `agents/*.md` into `~/.claude/agents` and `.codex/agents/*.toml`
-into `~/.codex/agents`. Both destination directories are created as needed;
-Overwriting is refused by default: use `--force` to overwrite with a timestamped adjacent backup.
-When `~/.pi` exists, `.pi/agent/agents/*.{md,toml}` is also linked into
-`~/.pi/agent/agents`.
+Each agent is three files in [agents/](./agents):
+
+* `<name>.cue` - the source definition, with one block per platform holding
+  that platform's own fields
+* `<name>.json` - generated from the CUE and checked in, so installing needs no
+  CUE toolchain
+* `<name>.md` - the system prompt
+
+The installer renders those into `~/.claude/agents/<name>.md`,
+`~/.codex/agents/<name>.toml`, and `~/.gemini/config/agents/<name>.md`. Without
+`--platform` it installs every platform whose configuration directory exists.
+Destination directories are created as needed, unchanged files are left alone,
+and a differing file is refused unless you pass `--force`, which keeps a
+timestamped backup beside it. You can edit the checked-in JSON or markdown in
+place; regenerate the JSON from CUE with:
+
+```sh
+./scripts/generate-agents-json.sh [--check]
+```
+
+`--check` reports stale JSON without writing, and CI enforces it. See
+[ADR 0002](./docs/adr/0002-agents-from-one-cue-source.md) for why. Pi subagents
+are not installed: its frontmatter differs between subagent plugins.
 
 The best setup requires using multiple AI providers and that will require making additional subagent definitions.
 I also have a [Pi plugin for dynamically altering the subagents based on available quota](https://github.com/gregwebs/pi-quota-dispatcher).
