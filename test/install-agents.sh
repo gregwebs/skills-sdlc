@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Isolated contract test for scripts/install-agents.sh.
+# Isolated contract test for scripts/install-agents.sh: agent rendering per
+# platform, platform selection, and filesystem behavior.
 set -euo pipefail
 
 REPOSITORY_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -13,11 +14,8 @@ fail() {
 }
 
 assert_file_content() {
+  [ -f "$1" ] || fail "expected file: $1"
   [ "$(<"$1")" = "$2" ] || fail "unexpected content in $1"
-}
-
-assert_link_to() {
-  [ "$1" -ef "$2" ] || fail "expected $1 to link to $2"
 }
 
 assert_absent() {
@@ -34,199 +32,217 @@ assert_failure() {
   fi
 }
 
-HOME="$TEMP_ROOT/home"
-CLAUDE_SOURCE="$TEMP_ROOT/claude source"
-CODEX_SOURCE="$TEMP_ROOT/codex source"
-PI_SOURCE="$TEMP_ROOT/pi source"
-CLAUDE_INSTALL="$HOME/.claude/agents"
-CODEX_INSTALL="$HOME/.codex/agents"
-mkdir -p "$HOME" "$CLAUDE_SOURCE/nested" "$CODEX_SOURCE/nested" "$PI_SOURCE/nested"
-printf 'claude one\n' >"$CLAUDE_SOURCE/one.md"
-printf 'claude two\n' >"$CLAUDE_SOURCE/two.md"
-printf 'ignored\n' >"$CLAUDE_SOURCE/wrong.toml"
-printf 'nested\n' >"$CLAUDE_SOURCE/nested/hidden.md"
-printf 'codex one\n' >"$CODEX_SOURCE/one.toml"
-printf 'codex two\n' >"$CODEX_SOURCE/two.toml"
-printf 'ignored\n' >"$CODEX_SOURCE/wrong.md"
-printf 'nested\n' >"$CODEX_SOURCE/nested/hidden.toml"
-printf 'pi one\n' >"$PI_SOURCE/one.md"
-printf 'pi two\n' >"$PI_SOURCE/two.toml"
-printf 'ignored\n' >"$PI_SOURCE/wrong.txt"
-printf 'nested\n' >"$PI_SOURCE/nested/hidden.md"
+# --- fixtures -------------------------------------------------------------
+
+AGENT_DIR="$TEMP_ROOT/agents"
+mkdir -p "$AGENT_DIR"
+printf 'ignored\n' >"$AGENT_DIR/notes.txt"
+printf 'ignored\n' >"$AGENT_DIR/gamma.cue"
+
+cat >"$AGENT_DIR/alpha.json" <<'EOF'
+{
+    "name": "alpha",
+    "description": "Alpha agent: does alpha things.",
+    "claude": {
+        "model": "opus",
+        "tools": ["Read", "Grep"],
+        "fallbackModels": ["a-model", "b-model"]
+    },
+    "codex": {
+        "model": "gpt-x",
+        "model_reasoning_effort": "high"
+    },
+    "antigravity": {
+        "model": "pro",
+        "tools": ["view_file", "run_command"],
+        "subagent": true,
+        "mainAgent": false
+    }
+}
+EOF
+cat >"$AGENT_DIR/alpha.md" <<'EOF'
+Alpha body line one.
+Line two has a "quote" and C:\tmp.
+EOF
+
+# beta exercises a definition with no codex block at all.
+cat >"$AGENT_DIR/beta.json" <<'EOF'
+{
+    "name": "beta",
+    "description": "Beta agent.",
+    "claude": {"model": "sonnet"}
+}
+EOF
+printf 'Beta body.\n' >"$AGENT_DIR/beta.md"
+
+EXPECTED_CLAUDE_ALPHA="---"$'\n'"name: alpha"$'\n'
+EXPECTED_CLAUDE_ALPHA+='description: "Alpha agent: does alpha things."'$'\n'
+EXPECTED_CLAUDE_ALPHA+='tools: Read, Grep'$'\n'
+EXPECTED_CLAUDE_ALPHA+='model: "opus"'$'\n'
+EXPECTED_CLAUDE_ALPHA+='fallbackModels: ["a-model", "b-model"]'$'\n'
+EXPECTED_CLAUDE_ALPHA+="---"$'\n'$'\n'
+EXPECTED_CLAUDE_ALPHA+='Alpha body line one.'$'\n'
+EXPECTED_CLAUDE_ALPHA+='Line two has a "quote" and C:\tmp.'
+
+EXPECTED_CODEX_ALPHA='name = "alpha"'$'\n'
+EXPECTED_CODEX_ALPHA+='description = "Alpha agent: does alpha things."'$'\n'
+EXPECTED_CODEX_ALPHA+='model = "gpt-x"'$'\n'
+EXPECTED_CODEX_ALPHA+='model_reasoning_effort = "high"'$'\n'
+EXPECTED_CODEX_ALPHA+='developer_instructions = """'$'\n'
+EXPECTED_CODEX_ALPHA+='Alpha body line one.'$'\n'
+EXPECTED_CODEX_ALPHA+='Line two has a \"quote\" and C:\\tmp.'$'\n'
+EXPECTED_CODEX_ALPHA+='"""'
+
+EXPECTED_CODEX_BETA='name = "beta"'$'\n'
+EXPECTED_CODEX_BETA+='description = "Beta agent."'$'\n'
+EXPECTED_CODEX_BETA+='developer_instructions = """'$'\n'
+EXPECTED_CODEX_BETA+='Beta body.'$'\n'
+EXPECTED_CODEX_BETA+='"""'
+
+EXPECTED_ANTIGRAVITY_ALPHA="---"$'\n'"name: alpha"$'\n'
+EXPECTED_ANTIGRAVITY_ALPHA+='description: "Alpha agent: does alpha things."'$'\n'
+EXPECTED_ANTIGRAVITY_ALPHA+='subagent: true'$'\n'
+EXPECTED_ANTIGRAVITY_ALPHA+='mainAgent: false'$'\n'
+EXPECTED_ANTIGRAVITY_ALPHA+='model: "pro"'$'\n'
+EXPECTED_ANTIGRAVITY_ALPHA+='tools:'$'\n'
+EXPECTED_ANTIGRAVITY_ALPHA+='  - "view_file"'$'\n'
+EXPECTED_ANTIGRAVITY_ALPHA+='  - "run_command"'$'\n'
+EXPECTED_ANTIGRAVITY_ALPHA+="---"$'\n'$'\n'
+EXPECTED_ANTIGRAVITY_ALPHA+='Alpha body line one.'$'\n'
+EXPECTED_ANTIGRAVITY_ALPHA+='Line two has a "quote" and C:\tmp.'
+
+# --- help -----------------------------------------------------------------
 
 "$INSTALLER" --help >"$TEMP_ROOT/help"
-for option in --dry-run --force --claude-source-dir --codex-source-dir --pi-source-dir \
-  --claude-install-dir --codex-install-dir --pi-install-dir -h --help; do
+for option in --platform --agent-dir --claude-install-dir --codex-install-dir \
+  --antigravity-install-dir --dry-run --force -h --help; do
   assert_output "$TEMP_ROOT/help" "$option"
 done
-assert_absent "$CLAUDE_INSTALL"
-assert_absent "$CODEX_INSTALL"
-
-HOME="$HOME" "$INSTALLER" \
-  --claude-source-dir "$CLAUDE_SOURCE" --codex-source-dir "$CODEX_SOURCE" \
-  --claude-install-dir "$CLAUDE_INSTALL" --codex-install-dir "$CODEX_INSTALL"
-assert_link_to "$CLAUDE_INSTALL/one.md" "$CLAUDE_SOURCE/one.md"
-assert_link_to "$CLAUDE_INSTALL/two.md" "$CLAUDE_SOURCE/two.md"
-assert_link_to "$CODEX_INSTALL/one.toml" "$CODEX_SOURCE/one.toml"
-assert_link_to "$CODEX_INSTALL/two.toml" "$CODEX_SOURCE/two.toml"
-assert_absent "$CLAUDE_INSTALL/wrong.toml"
-assert_absent "$CLAUDE_INSTALL/hidden.md"
-assert_absent "$CODEX_INSTALL/wrong.md"
-assert_absent "$CODEX_INSTALL/hidden.toml"
-
-before=$(readlink "$CLAUDE_INSTALL/one.md")
-HOME="$HOME" "$INSTALLER" \
-  --claude-source-dir "$CLAUDE_SOURCE" --codex-source-dir "$CODEX_SOURCE" \
-  --claude-install-dir "$CLAUDE_INSTALL" --codex-install-dir "$CODEX_INSTALL"
-[ "$(readlink "$CLAUDE_INSTALL/one.md")" = "$before" ] || fail 'idempotent link changed'
-if compgen -G "$CLAUDE_INSTALL/one.md.backup.*" >/dev/null; then
-  fail 'idempotent install created a backup'
-fi
-
-GATE_HOME="$TEMP_ROOT/gate home"
-mkdir -p "$GATE_HOME"
-HOME="$GATE_HOME" "$INSTALLER" \
-  --claude-source-dir "$CLAUDE_SOURCE" --codex-source-dir "$CODEX_SOURCE" --pi-source-dir "$PI_SOURCE" \
-  --claude-install-dir "$GATE_HOME/.claude/agents" --codex-install-dir "$GATE_HOME/.codex/agents" \
-  >"$TEMP_ROOT/gate-off-output" 2>&1
-assert_absent "$GATE_HOME/.pi"
-assert_output "$TEMP_ROOT/gate-off-output" 'Skipping Pi agents'
-
-mkdir -p "$GATE_HOME/.pi"
-HOME="$GATE_HOME" "$INSTALLER" \
-  --claude-source-dir "$CLAUDE_SOURCE" --codex-source-dir "$CODEX_SOURCE" --pi-source-dir "$PI_SOURCE" \
-  --claude-install-dir "$GATE_HOME/.claude/agents" --codex-install-dir "$GATE_HOME/.codex/agents"
-assert_link_to "$GATE_HOME/.pi/agent/agents/one.md" "$PI_SOURCE/one.md"
-assert_link_to "$GATE_HOME/.pi/agent/agents/two.toml" "$PI_SOURCE/two.toml"
-assert_absent "$GATE_HOME/.pi/agent/agents/wrong.txt"
-assert_absent "$GATE_HOME/.pi/agent/agents/hidden.md"
-
-OVERRIDE_HOME="$TEMP_ROOT/override home"
-OVERRIDE_PI="$TEMP_ROOT/override pi"
-mkdir -p "$OVERRIDE_HOME"
-HOME="$OVERRIDE_HOME" "$INSTALLER" \
-  --claude-source-dir "$CLAUDE_SOURCE" --codex-source-dir "$CODEX_SOURCE" --pi-source-dir "$PI_SOURCE" \
-  --claude-install-dir "$OVERRIDE_HOME/.claude/agents" --codex-install-dir "$OVERRIDE_HOME/.codex/agents" \
-  --pi-install-dir "$OVERRIDE_PI"
-assert_absent "$OVERRIDE_HOME/.pi"
-assert_link_to "$OVERRIDE_PI/one.md" "$PI_SOURCE/one.md"
-
-SYMLINK_ROOT="$TEMP_ROOT/linked claude agents"
-SYMLINK_TARGET="$TEMP_ROOT/linked target"
-mkdir -p "$SYMLINK_TARGET"
-ln -s "$SYMLINK_TARGET" "$SYMLINK_ROOT"
-SYMLINK_CODEX="$TEMP_ROOT/linked codex agents"
-HOME="$HOME" "$INSTALLER" \
-  --claude-source-dir "$CLAUDE_SOURCE" --codex-source-dir "$CODEX_SOURCE" \
-  --claude-install-dir "$SYMLINK_ROOT" --codex-install-dir "$SYMLINK_CODEX"
-[ -L "$SYMLINK_ROOT" ] || fail 'destination root symlink was not preserved'
-assert_link_to "$SYMLINK_ROOT/one.md" "$CLAUDE_SOURCE/one.md"
-assert_link_to "$SYMLINK_CODEX/one.toml" "$CODEX_SOURCE/one.toml"
-
-PREFLIGHT_CLAUDE="$TEMP_ROOT/preflight claude"
-PREFLIGHT_CODEX="$TEMP_ROOT/preflight codex"
-mkdir -p "$PREFLIGHT_CLAUDE"
-printf 'keep me\n' >"$PREFLIGHT_CLAUDE/one.md"
-assert_failure env HOME="$HOME" "$INSTALLER" \
-  --claude-source-dir "$CLAUDE_SOURCE" --codex-source-dir "$CODEX_SOURCE" \
-  --claude-install-dir "$PREFLIGHT_CLAUDE" --codex-install-dir "$PREFLIGHT_CODEX"
-assert_output "$TEMP_ROOT/output" 'install-agents: refusing to replace existing agent link'
-assert_file_content "$PREFLIGHT_CLAUDE/one.md" 'keep me'
-assert_absent "$PREFLIGHT_CODEX"
-
-FORCE_CLAUDE="$TEMP_ROOT/force claude"
-FORCE_CODEX="$TEMP_ROOT/force codex"
-FORCE_PI="$TEMP_ROOT/force pi"
-mkdir -p "$FORCE_CLAUDE" "$FORCE_CODEX" "$FORCE_PI"
-printf 'first original\n' >"$FORCE_CLAUDE/one.md"
-OTHER_TARGET="$TEMP_ROOT/other.toml"
-printf 'other\n' >"$OTHER_TARGET"
-ln -s "$OTHER_TARGET" "$FORCE_CODEX/one.toml"
-printf 'pi first original\n' >"$FORCE_PI/one.md"
-HOME="$HOME" "$INSTALLER" --force \
-  --claude-source-dir "$CLAUDE_SOURCE" --codex-source-dir "$CODEX_SOURCE" --pi-source-dir "$PI_SOURCE" \
-  --claude-install-dir "$FORCE_CLAUDE" --codex-install-dir "$FORCE_CODEX" --pi-install-dir "$FORCE_PI"
-assert_link_to "$FORCE_CLAUDE/one.md" "$CLAUDE_SOURCE/one.md"
-assert_link_to "$FORCE_CODEX/one.toml" "$CODEX_SOURCE/one.toml"
-assert_link_to "$FORCE_PI/one.md" "$PI_SOURCE/one.md"
-mapfile -t claude_backups < <(compgen -G "$FORCE_CLAUDE/one.md.backup.*")
-mapfile -t codex_backups < <(compgen -G "$FORCE_CODEX/one.toml.backup.*")
-mapfile -t pi_backups < <(compgen -G "$FORCE_PI/one.md.backup.*")
-[ "${#claude_backups[@]}" -eq 1 ] || fail 'expected Claude backup'
-[ "${#codex_backups[@]}" -eq 1 ] || fail 'expected Codex backup'
-[ "${#pi_backups[@]}" -eq 1 ] || fail 'expected Pi backup'
-assert_file_content "${claude_backups[0]}" 'first original'
-assert_link_to "${codex_backups[0]}" "$OTHER_TARGET"
-assert_file_content "${pi_backups[0]}" 'pi first original'
-mv "$FORCE_CLAUDE/one.md" "$TEMP_ROOT/displaced correct Claude link"
-printf 'second original\n' >"$FORCE_CLAUDE/one.md"
-HOME="$HOME" "$INSTALLER" --force \
-  --claude-source-dir "$CLAUDE_SOURCE" --codex-source-dir "$CODEX_SOURCE" --pi-source-dir "$PI_SOURCE" \
-  --claude-install-dir "$FORCE_CLAUDE" --codex-install-dir "$FORCE_CODEX" --pi-install-dir "$FORCE_PI"
-mapfile -t claude_backups < <(compgen -G "$FORCE_CLAUDE/one.md.backup.*")
-mapfile -t pi_backups < <(compgen -G "$FORCE_PI/one.md.backup.*")
-[ "${#claude_backups[@]}" -eq 2 ] || fail 'expected distinct Claude backups'
-[ "${#pi_backups[@]}" -eq 1 ] || fail 'idempotent Pi install created a backup'
-for backup in "${claude_backups[@]}"; do
-  [ "$(<"$backup")" = 'first original' ] || [ "$(<"$backup")" = 'second original' ] || fail 'backup content was lost'
+for platform in claude codex antigravity; do
+  assert_output "$TEMP_ROOT/help" "$platform"
 done
 
-DRY_CLAUDE="$TEMP_ROOT/dry claude"
-DRY_CODEX="$TEMP_ROOT/dry codex"
-DRY_PI="$TEMP_ROOT/dry pi"
-HOME="$HOME" "$INSTALLER" --dry-run \
-  --claude-source-dir "$CLAUDE_SOURCE" --codex-source-dir "$CODEX_SOURCE" --pi-source-dir "$PI_SOURCE" \
-  --claude-install-dir "$DRY_CLAUDE" --codex-install-dir "$DRY_CODEX" --pi-install-dir "$DRY_PI" \
+# --- rendering per platform ----------------------------------------------
+
+HOME="$TEMP_ROOT/all home"
+mkdir -p "$HOME"
+HOME="$HOME" "$INSTALLER" --agent-dir "$AGENT_DIR" --platform all
+assert_file_content "$HOME/.claude/agents/alpha.md" "$EXPECTED_CLAUDE_ALPHA"
+assert_file_content "$HOME/.claude/agents/beta.md" $'---\nname: beta\ndescription: "Beta agent."\nmodel: "sonnet"\n---\n\nBeta body.'
+assert_file_content "$HOME/.codex/agents/alpha.toml" "$EXPECTED_CODEX_ALPHA"
+assert_file_content "$HOME/.codex/agents/beta.toml" "$EXPECTED_CODEX_BETA"
+assert_file_content "$HOME/.gemini/config/agents/alpha.md" "$EXPECTED_ANTIGRAVITY_ALPHA"
+assert_file_content "$HOME/.gemini/config/agents/beta.md" \
+  $'---\nname: beta\ndescription: "Beta agent."\nsubagent: true\nmainAgent: false\n---\n\nBeta body.'
+assert_absent "$HOME/.claude/agents/notes.txt"
+assert_absent "$HOME/.claude/agents/gamma.cue"
+
+# --- platform selection --------------------------------------------------
+
+HOME="$TEMP_ROOT/select home"
+mkdir -p "$HOME/.claude" "$HOME/.codex" "$HOME/.gemini"
+HOME="$HOME" "$INSTALLER" --agent-dir "$AGENT_DIR" --platform claude,antigravity
+assert_absent "$HOME/.codex/agents"
+[ -f "$HOME/.claude/agents/alpha.md" ] || fail 'expected claude install'
+[ -f "$HOME/.gemini/config/agents/alpha.md" ] || fail 'expected antigravity install'
+
+HOME="$TEMP_ROOT/repeat home"
+mkdir -p "$HOME"
+HOME="$HOME" "$INSTALLER" --agent-dir "$AGENT_DIR" --platform codex --platform claude
+[ -f "$HOME/.codex/agents/alpha.toml" ] || fail 'expected repeated --platform to accumulate'
+[ -f "$HOME/.claude/agents/alpha.md" ] || fail 'expected repeated --platform to accumulate'
+assert_absent "$HOME/.gemini"
+
+# --- default detection ---------------------------------------------------
+
+HOME="$TEMP_ROOT/detect home"
+mkdir -p "$HOME/.codex"
+HOME="$HOME" "$INSTALLER" --agent-dir "$AGENT_DIR" >"$TEMP_ROOT/detect-output" 2>&1
+[ -f "$HOME/.codex/agents/alpha.toml" ] || fail 'expected codex to be detected'
+assert_absent "$HOME/.claude"
+assert_absent "$HOME/.gemini"
+assert_output "$TEMP_ROOT/detect-output" 'Skipping claude'
+assert_output "$TEMP_ROOT/detect-output" 'Skipping antigravity'
+
+HOME="$TEMP_ROOT/nothing home"
+mkdir -p "$HOME"
+assert_failure env HOME="$HOME" "$INSTALLER" --agent-dir "$AGENT_DIR"
+assert_output "$TEMP_ROOT/output" 'pass --platform'
+assert_absent "$HOME/.claude"
+
+# --- idempotence, user edits, --force ------------------------------------
+
+HOME="$TEMP_ROOT/idem home"
+mkdir -p "$HOME"
+HOME="$HOME" "$INSTALLER" --agent-dir "$AGENT_DIR" --platform claude
+HOME="$HOME" "$INSTALLER" --agent-dir "$AGENT_DIR" --platform claude
+if compgen -G "$HOME/.claude/agents/alpha.md.backup.*" >/dev/null; then
+  fail 'unchanged reinstall created a backup'
+fi
+assert_file_content "$HOME/.claude/agents/alpha.md" "$EXPECTED_CLAUDE_ALPHA"
+
+printf 'hand edited\n' >"$HOME/.claude/agents/alpha.md"
+assert_failure env HOME="$HOME" "$INSTALLER" --agent-dir "$AGENT_DIR" --platform claude
+assert_output "$TEMP_ROOT/output" 'refusing to replace differing agent file'
+assert_file_content "$HOME/.claude/agents/alpha.md" 'hand edited'
+[ -f "$HOME/.claude/agents/beta.md" ] || fail 'preflight failure left beta uninstalled'
+
+HOME="$HOME" "$INSTALLER" --agent-dir "$AGENT_DIR" --platform claude --force
+assert_file_content "$HOME/.claude/agents/alpha.md" "$EXPECTED_CLAUDE_ALPHA"
+mapfile -t backups < <(compgen -G "$HOME/.claude/agents/alpha.md.backup.*")
+[ "${#backups[@]}" -eq 1 ] || fail 'expected one backup of the edited file'
+assert_file_content "${backups[0]}" 'hand edited'
+
+# --- dry run -------------------------------------------------------------
+
+DRY_HOME="$TEMP_ROOT/dry home"
+mkdir -p "$DRY_HOME"
+HOME="$DRY_HOME" "$INSTALLER" --agent-dir "$AGENT_DIR" --platform codex --dry-run \
   >"$TEMP_ROOT/dry-output"
 assert_output "$TEMP_ROOT/dry-output" 'mkdir -p'
-assert_output "$TEMP_ROOT/dry-output" 'ln -s'
-assert_absent "$DRY_CLAUDE"
-assert_absent "$DRY_CODEX"
-assert_absent "$DRY_PI"
-mkdir -p "$DRY_CLAUDE" "$DRY_CODEX" "$DRY_PI"
-printf 'dry conflict\n' >"$DRY_CLAUDE/one.md"
-HOME="$HOME" "$INSTALLER" --dry-run --force \
-  --claude-source-dir "$CLAUDE_SOURCE" --codex-source-dir "$CODEX_SOURCE" --pi-source-dir "$PI_SOURCE" \
-  --claude-install-dir "$DRY_CLAUDE" --codex-install-dir "$DRY_CODEX" --pi-install-dir "$DRY_PI" \
-  >"$TEMP_ROOT/dry-force-output"
-assert_output "$TEMP_ROOT/dry-force-output" 'mv'
-assert_output "$TEMP_ROOT/dry-force-output" 'ln -s'
-assert_file_content "$DRY_CLAUDE/one.md" 'dry conflict'
-if compgen -G "$DRY_CLAUDE/one.md.backup.*" >/dev/null; then
-  fail 'dry-run force created a backup'
-fi
+assert_output "$TEMP_ROOT/dry-output" 'cp '
+assert_output "$TEMP_ROOT/dry-output" 'Dry run complete'
+assert_absent "$DRY_HOME/.codex/agents"
 
-MISSING="$TEMP_ROOT/missing"
-assert_failure env HOME="$HOME" "$INSTALLER" --claude-source-dir "$MISSING" \
-  --codex-source-dir "$CODEX_SOURCE" --claude-install-dir "$TEMP_ROOT/no mutation claude" \
-  --codex-install-dir "$TEMP_ROOT/no mutation codex"
-assert_output "$TEMP_ROOT/output" 'Claude source directory does not exist'
-assert_absent "$TEMP_ROOT/no mutation claude"
-assert_absent "$TEMP_ROOT/no mutation codex"
-EMPTY_CLAUDE="$TEMP_ROOT/empty claude"
-mkdir -p "$EMPTY_CLAUDE"
-assert_failure env HOME="$HOME" "$INSTALLER" --claude-source-dir "$EMPTY_CLAUDE" \
-  --codex-source-dir "$CODEX_SOURCE" --claude-install-dir "$TEMP_ROOT/empty result claude" \
-  --codex-install-dir "$TEMP_ROOT/empty result codex"
-assert_output "$TEMP_ROOT/output" 'no Claude .md agent files found'
-assert_absent "$TEMP_ROOT/empty result claude"
-assert_absent "$TEMP_ROOT/empty result codex"
-EMPTY_PI="$TEMP_ROOT/empty pi"
-mkdir -p "$EMPTY_PI"
-assert_failure env HOME="$HOME" "$INSTALLER" --claude-source-dir "$CLAUDE_SOURCE" \
-  --codex-source-dir "$CODEX_SOURCE" --pi-source-dir "$EMPTY_PI" \
-  --claude-install-dir "$TEMP_ROOT/empty pi result claude" \
-  --codex-install-dir "$TEMP_ROOT/empty pi result codex" \
-  --pi-install-dir "$TEMP_ROOT/empty pi result pi"
-assert_output "$TEMP_ROOT/output" 'no Pi .md, .toml agent files found'
-assert_absent "$TEMP_ROOT/empty pi result claude"
-assert_absent "$TEMP_ROOT/empty pi result codex"
-assert_absent "$TEMP_ROOT/empty pi result pi"
+# --- source validation ---------------------------------------------------
+
+assert_failure "$INSTALLER" --platform emacs
+assert_output "$TEMP_ROOT/output" 'unknown platform: emacs'
+
+EMPTY_DIR="$TEMP_ROOT/empty agents"
+mkdir -p "$EMPTY_DIR"
+assert_failure env HOME="$TEMP_ROOT/all home" "$INSTALLER" --agent-dir "$EMPTY_DIR" --platform claude
+assert_output "$TEMP_ROOT/output" 'no agent definitions found'
+
+NO_BODY_DIR="$TEMP_ROOT/no body agents"
+mkdir -p "$NO_BODY_DIR"
+cp "$AGENT_DIR/alpha.json" "$NO_BODY_DIR/"
+assert_failure env HOME="$TEMP_ROOT/all home" "$INSTALLER" --agent-dir "$NO_BODY_DIR" --platform claude
+assert_output "$TEMP_ROOT/output" 'missing system prompt'
+
+MISNAMED_DIR="$TEMP_ROOT/misnamed agents"
+mkdir -p "$MISNAMED_DIR"
+cp "$AGENT_DIR/alpha.md" "$MISNAMED_DIR/other.md"
+cp "$AGENT_DIR/alpha.json" "$MISNAMED_DIR/other.json"
+assert_failure env HOME="$TEMP_ROOT/all home" "$INSTALLER" --agent-dir "$MISNAMED_DIR" --platform claude
+assert_output "$TEMP_ROOT/output" 'declares name "alpha"'
+
+NO_DESCRIPTION_DIR="$TEMP_ROOT/no description agents"
+mkdir -p "$NO_DESCRIPTION_DIR"
+printf '{"name": "alpha"}\n' >"$NO_DESCRIPTION_DIR/alpha.json"
+printf 'body\n' >"$NO_DESCRIPTION_DIR/alpha.md"
+assert_failure env HOME="$TEMP_ROOT/all home" "$INSTALLER" --agent-dir "$NO_DESCRIPTION_DIR" --platform claude
+assert_output "$TEMP_ROOT/output" 'has no description'
+
+HOME="$TEMP_ROOT/all home" "$INSTALLER" --agent-dir "$AGENT_DIR" --platform claude \
+  --claude-install-dir "$TEMP_ROOT/custom install" >/dev/null
+[ -f "$TEMP_ROOT/custom install/alpha.md" ] || fail 'expected --claude-install-dir to be honored'
 
 assert_failure "$INSTALLER" --unknown
 assert_output "$TEMP_ROOT/output" 'install-agents: unknown option: --unknown'
-for option in --claude-source-dir --codex-source-dir --pi-source-dir \
-  --claude-install-dir --codex-install-dir --pi-install-dir; do
+assert_failure "$INSTALLER" --platform
+assert_output "$TEMP_ROOT/output" 'install-agents: --platform requires a platform name'
+for option in --agent-dir --claude-install-dir --codex-install-dir --antigravity-install-dir; do
   assert_failure "$INSTALLER" "$option"
   assert_output "$TEMP_ROOT/output" "install-agents: $option requires a directory"
 done

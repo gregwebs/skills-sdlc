@@ -24,3 +24,15 @@ _Avoid_: dispatcher, shim, helper
 A GitHub operation with no `gh` command (issue dependencies and sub-issues),
 served by a bundled script over `gh api`.
 _Avoid_: custom command, extension
+
+## Agents
+
+**Agent definition**:
+`agents/<name>.cue` together with its generated `<name>.json` and its
+`<name>.md` system prompt: one subagent, described for every platform at once.
+_Avoid_: agent config, subagent file
+
+**Platform**:
+One coding agent whose agent directory this repository installs into: `claude`,
+`codex`, or `antigravity`.
+_Avoid_: provider, backend, target

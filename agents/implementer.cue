@@ -1,0 +1,25 @@
+package agents
+
+implementer: #Agent & {
+	name:        "implementer"
+	description: "Implementer. Implement code, preferably from a plan."
+
+	claude: {
+		model:          "sonnet"
+		permissionMode: "acceptEdits"
+		fallbackModels: ["openai/gpt-5.6-terra", "gpt-5.6-terra"]
+	}
+
+	codex: {
+		model:                  "gpt-5.6-terra"
+		model_reasoning_effort: "medium"
+	}
+
+	antigravity: {
+		model:                  "flash"
+		tools:                  ["view_file", "write_to_file", "replace_file_content", "grep_search", "list_directory", "run_command"]
+		mainAgent:              false
+		subagent:               true
+		commandExecutionPolicy: "auto"
+	}
+}
