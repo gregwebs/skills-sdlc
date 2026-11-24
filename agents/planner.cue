@@ -17,7 +17,9 @@ planner: #Agent & {
 	}
 
 	antigravity: {
-		model:     "pro"
+		// Gemini 4 Neon needs a paid plan; on Free, use
+		// gemini-4-hydrogen-high or the "pro" alias.
+		model:     "gemini-4-neon-high"
 		tools:     ["view_file", "grep_search", "list_directory", "run_command"]
 		mainAgent: false
 		subagent:  true

@@ -14,7 +14,7 @@
         "model_reasoning_effort": "medium"
     },
     "antigravity": {
-        "model": "flash",
+        "model": "gemini-4-hydrogen-medium",
         "tools": [
             "view_file",
             "write_to_file",

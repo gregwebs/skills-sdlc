@@ -124,6 +124,10 @@ place; regenerate the JSON from CUE with:
 ./scripts/generate-agents-json.sh [--check]
 ```
 
+The shipped Antigravity definitions pin Gemini 4 Neon for `planner` and Gemini 4
+Hydrogen for `implementer`; Neon needs a paid plan, so edit those CUE files (or
+use the `pro`/`flash` tier aliases) if your plan differs.
+
 `--check` reports stale JSON without writing, and CI enforces it. See
 [ADR 0002](./docs/adr/0002-agents-from-one-cue-source.md) for why. Pi subagents
 are not installed: its frontmatter differs between subagent plugins.

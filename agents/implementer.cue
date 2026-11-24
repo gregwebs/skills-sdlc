@@ -16,7 +16,8 @@ implementer: #Agent & {
 	}
 
 	antigravity: {
-		model:                  "flash"
+		// Hydrogen is Antigravity's executor model and is on every plan.
+		model:                  "gemini-4-hydrogen-medium"
 		tools:                  ["view_file", "write_to_file", "replace_file_content", "grep_search", "list_directory", "run_command"]
 		mainAgent:              false
 		subagent:               true
