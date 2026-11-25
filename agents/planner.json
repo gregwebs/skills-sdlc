@@ -22,9 +22,9 @@
     "antigravity": {
         "model": "gemini-4-neon-high",
         "tools": [
-            "view_file",
-            "grep_search",
-            "list_directory",
+            "read_file",
+            "write_file",
+            "search_web",
             "run_command"
         ],
         "mainAgent": false,

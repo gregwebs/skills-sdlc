@@ -46,14 +46,33 @@ package agents
 // Antigravity hangs a subagent whose tools list names an unmapped tool, so this
 // list stays short. Extend it only with a name verified in
 // https://antigravity.google/docs/subagents/ or in the agy binary.
+// Tool names for an Antigravity agent's `tools` list. The CLI and the App name
+// the same capabilities differently, so both sets are accepted. Provenance for
+// every name: docs/adr/0002-agents-from-one-cue-source.md.
 #AntigravityTool:
-	"grep_search" |
-		"list_directory" |
-		"manage_task" |
-		"multi_replace_file_content" |
-		"read_url_content" |
-		"replace_file_content" |
+	// Antigravity CLI: the tool set of a live session, and the names the
+	// shipped migrate-agent-settings skill tells an agent to write.
+	"read_file" |
+		"write_file" |
+		"edit_file" |
 		"run_command" |
+		"manage_task" |
+		"update_steps" |
+		"send_message" |
+		"schedule" |
+		"invoke_subagent" |
+		"define_subagent" |
+		"manage_subagents" |
 		"search_web" |
+		"ask_question" |
+		"run_workflow" |
+		// Retired from the CLI baseline, still enabled for agents that list
+		// them (CLI changelog).
+		"find_by_name" |
+		"grep_search" |
+		"list_dir" |
+		// Antigravity App and IDE (custom subagents docs).
 		"view_file" |
-		"write_to_file"
+		"write_to_file" |
+		"replace_file_content" |
+		"read_url_content"
