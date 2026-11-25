@@ -16,11 +16,10 @@
     "antigravity": {
         "model": "gemini-4-hydrogen-medium",
         "tools": [
-            "view_file",
-            "write_to_file",
-            "replace_file_content",
-            "grep_search",
-            "list_directory",
+            "read_file",
+            "write_file",
+            "edit_file",
+            "search_web",
             "run_command"
         ],
         "mainAgent": false,

@@ -33,7 +33,7 @@ fails when a checked-in JSON no longer matches its CUE.
   CUE toolchain on every machine, and a copy checked in also lets someone edit
   the JSON directly and skip CUE.
 - **One canonical `tools` list plus a mapping table.** Rejected: Antigravity's
-  tool names (`view_file`, `grep_search`, `run_command`) have no safe mapping
+  tool names (`read_file`, `edit_file`, `run_command`) have no safe mapping
   from Claude's (`Read`, `Grep`, `Bash`), and
   [its docs](https://antigravity.google/docs/subagents/) warn that a misspelled
   tool name can hang the subagent. Tools are declared per platform and
@@ -55,3 +55,30 @@ fails when a checked-in JSON no longer matches its CUE.
 - Pi is not a target. Its subagent frontmatter differs between the plugins that
   provide subagents, and the model names it accepts differ from the ones this
   repository pins.
+
+## Antigravity tool names
+
+An unmapped name in `tools` can hang the subagent, so `#AntigravityTool` is an
+allowlist. Two surfaces use different names for the same capabilities, and the
+allowlist had mixed them with a step name. Where each name comes from, checked
+against `agy` 1.5.16:
+
+| Names | Evidence |
+| --- | --- |
+| `read_file`, `write_file`, `edit_file`, `run_command`, `manage_task`, `update_steps`, `send_message`, `schedule`, `invoke_subagent`, `define_subagent`, `manage_subagents`, `search_web`, `ask_question`, `run_workflow` | The tool set recorded in a real CLI conversation (`~/.gemini/antigravity-cli/conversations/*.db`), and the six-tool list the shipped `migrate-agent-settings` skill writes into a migrated agent's `tools`. |
+| `find_by_name`, `grep_search`, `list_dir` | The CLI changelog: retired from the default baseline "while keeping them available to custom agents that explicitly list them in `tools`". |
+| `view_file`, `write_to_file`, `replace_file_content`, `read_url_content` | The [custom subagents docs](https://antigravity.google/docs/subagents/) example, and the `antigravity.localharness` tool configs in the binary. These are the App and IDE names; the CLI has no `view_file`. |
+
+`list_directory` was dropped: it is a step type (`CortexStepListDirectory`,
+`ActionListDirectory`), not a tool. The tool is `list_dir`.
+
+There is no runtime proof of this table. The CLI on this machine is not signed
+in ("You are not logged into Antigravity"), so invoking a probe subagent per
+candidate name was impossible. The shipped agents therefore list only CLI names,
+which a live session confirms, and the schema still accepts the App names so a
+definition aimed at the App validates too.
+
+The CLI resolves a `model` tier alias to a concrete model from its own config
+(`flash` to `gemini-4-hydrogen-tiered-high`, `pro` to
+`gemini-4-hydrogen-tiered-xhigh`), so an alias and a model id are both portable
+enough to pin.
